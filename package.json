@@ -2,9 +2,12 @@
   "name": "sdk-js",
   "version": "1.0.0",
   "description": "The NFT Trader official javascript SDK.",
-  "main": "index.js",
+  "main": "dist/nfttrader-sdk.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:browser": "webpack && cp dist/nfttrader-sdk.js examples/browser",
+    "build:node": "webpack && cp dist/nfttrader-sdk.js examples/node/ && node examples/node/example.js",
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
@@ -19,9 +22,14 @@
   "homepage": "https://github.com/nfttrader-io/sdk-js#readme",
   "devDependencies": {
     "@babel/core": "^7.16.12",
+    "@babel/plugin-transform-runtime": "^7.16.10",
     "@babel/preset-env": "^7.16.11",
     "babel-loader": "^8.2.3",
     "webpack": "^5.68.0",
     "webpack-cli": "^4.9.2"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.16.7",
+    "ethers": "^5.5.4"
   }
 }
