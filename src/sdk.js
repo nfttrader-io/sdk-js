@@ -35,17 +35,17 @@ function SDK({web3Provider, jsonRpcProvider, signer = null, network = '', avoidP
     if (web3Provider && jsonRpcProvider)
         throw new Error('just one provider at a time is supported.')
 
-    if (typeof jsonRpcProvider != 'string' && typeof jsonRpcProvider != 'undefined')
+    if (typeof jsonRpcProvider !== 'string' && typeof jsonRpcProvider !== 'undefined')
         throw new Error('jsonRpcProvider must be a string -> Eg. https://rinkeby.infura.io/v3/...')
 
-    if (typeof web3Provider == 'string' && typeof web3Provider != 'undefined')
+    if (typeof web3Provider === 'string' && typeof web3Provider !== 'undefined')
         throw new Error('web3Provider must be an object -> Eg. window.ethereum')
 
     if (swap[network] === void 0)
         throw new Error('network not supported.')
 
-    if (typeof jsonRpcProvider == 'string') {
-        if (typeof signer == 'undefined' || signer == null)
+    if (typeof jsonRpcProvider === 'string') {
+        if (typeof signer === 'undefined' || signer === null)
             throw new Error('signer is mandatory if you use a JSON RPC Provider.')
         if (signer['privateKey'] === void 0)
             throw new Error('signer object must have a privateKey property.')
@@ -84,7 +84,7 @@ function SDK({web3Provider, jsonRpcProvider, signer = null, network = '', avoidP
  * @param {string} eventName - the name of the event.
  * @param {Function} callback - the callback function to execute once the event is fired.
  */
-SDK.prototype.on = function (eventName, callback) {
+SDK.prototype.on = function(eventName, callback) {
     const event = this.eventsCollectorCallbacks.find((eventItem) => {
         return eventItem.name === eventName
     })
@@ -128,7 +128,7 @@ SDK.prototype.off = function(eventName, callback = null) {
  * @param {string} eventName - the name of the event.
  * @param {Object} params - the params to give to the callback function
  */
-SDK.prototype.__emit = function (eventName, params = {}) {
+SDK.prototype.__emit = function(eventName, params = {}) {
     const event = this.eventsCollectorCallbacks.find((eventItem) => {
         return eventItem.name === eventName
     })
@@ -146,7 +146,7 @@ SDK.prototype.__emit = function (eventName, params = {}) {
  *
  * @param {number} blocksNumberConfirmationRequired - the number of the mined blocks to wait for considering a transaction valid.
  */
-SDK.prototype.setBlocksNumberConfirmationRequired = function (blocksNumberConfirmationRequired = 0) {
+SDK.prototype.setBlocksNumberConfirmationRequired = function(blocksNumberConfirmationRequired = 0) {
     this.blocksNumberConfirmationRequired = blocksNumberConfirmationRequired
 }
 
@@ -161,7 +161,7 @@ SDK.prototype.setBlocksNumberConfirmationRequired = function (blocksNumberConfir
  * @param {Array} obj.assetsTaker - the assets (ERC20/ERC721/ERC1155) provided by the taker (counterparty) of the swap
  * @param {string} obj.referralAddress - the referral address of the transaction.
  */
-SDK.prototype.createSwap = async function ({ethMaker, taker, ethTaker, assetsMaker = [], assetsTaker = [], referralAddress = ''}) {
+SDK.prototype.createSwap = async function({ethMaker, taker, ethTaker, assetsMaker = [], assetsTaker = [], referralAddress = ''}) {
     if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
         throw new Error('you cannot create a swap when you\'re in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction.')
 
@@ -246,7 +246,7 @@ SDK.prototype.createSwap = async function ({ethMaker, taker, ethTaker, assetsMak
  * @param {number} swapId - the identifier of the swap.
  * @param {string} referralAddress - the referral address of the transaction.
  */
-SDK.prototype.closeSwap = async function (maker, swapId, referralAddress = '') {
+SDK.prototype.closeSwap = async function(maker, swapId, referralAddress = '') {
     if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
         throw new Error('you cannot close a swap when you\'re in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction.')
 
@@ -294,7 +294,7 @@ SDK.prototype.closeSwap = async function (maker, swapId, referralAddress = '') {
  * 
  * @param {number} swapId - the identifier of the swap.
  */
-SDK.prototype.cancelSwap = async function (swapId) {
+SDK.prototype.cancelSwap = async function(swapId) {
     if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
         throw new Error('you cannot cancel a swap when you\'re in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction.')
 
@@ -343,7 +343,7 @@ SDK.prototype.cancelSwap = async function (swapId) {
  * @param {number} swapId - the identifier of the swap.
  * @param {string} addressTaker - the address of the taker (counterparty).
  */
-SDK.prototype.editTaker = async function (swapId, addressTaker) {
+SDK.prototype.editTaker = async function(swapId, addressTaker) {
     if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
         throw new Error('you cannot edit the taker of a swap when you\'re in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction.')
 
@@ -392,7 +392,7 @@ SDK.prototype.editTaker = async function (swapId, addressTaker) {
  * @param {string} maker - the swap creator address.
  * @param {number} swapId - the identifier of the swap.
  */
-SDK.prototype.getSwapDetails = async function (maker, swapId) {
+SDK.prototype.getSwapDetails = async function(maker, swapId) {
     try {
         return (await this.contract.getSwapIntentByAddress(maker, swapId))
     } catch (error) {
@@ -405,7 +405,7 @@ SDK.prototype.getSwapDetails = async function (maker, swapId) {
  * 
  * @param {number} swapId - the identifier of the swap.
  */
-SDK.prototype.getSwapAssets = async function (swapId) {
+SDK.prototype.getSwapAssets = async function(swapId) {
     try {
         const swapStructMakerSize = await this.contract.getSwapStructSize(swapId, true)
         const swapStructTakerSize = await this.contract.getSwapStructSize(swapId, false)
@@ -434,7 +434,7 @@ SDK.prototype.getSwapAssets = async function (swapId) {
  * 
  * @param {string} erc20Address - the ERC20 token address
  */
-SDK.prototype.getERC20WhiteList = async function (erc20Address) {
+SDK.prototype.getERC20WhiteList = async function(erc20Address) {
     try {
         return (await this.contract.getERC20WhiteList(erc20Address))
     } catch (error) {
@@ -447,7 +447,7 @@ SDK.prototype.getERC20WhiteList = async function (erc20Address) {
  * 
  * @param {string} assetAddress - the ERC721/ERC1155 token address
  */
-SDK.prototype.getNFTBlacklist = async function (assetAddress) {
+SDK.prototype.getNFTBlacklist = async function(assetAddress) {
     try {
         return (await this.contract.getNFTBlacklist(assetAddress))
     } catch (error) {
@@ -458,7 +458,7 @@ SDK.prototype.getNFTBlacklist = async function (assetAddress) {
 /**
  * Returns the payment struct configuration of the smart contract.
  */
-SDK.prototype.getPayment = async function () {
+SDK.prototype.getPayment = async function() {
     try {
         return (await this.contract.getPaymentStruct())
     } catch (error) {
@@ -471,7 +471,7 @@ SDK.prototype.getPayment = async function () {
  * 
  * @class SDK.Utils
  */
-SDK.prototype.Utils = function () {
+SDK.prototype.Utils = function() {
     this.assetsArray = []
     this.tokenConstants = {
         ERC20 : 0,
@@ -486,7 +486,7 @@ SDK.prototype.Utils = function () {
  * @param {string} address - the ERC20 token address.
  * @param {number} tokenAmount - the amount of the token used.
  */
-SDK.prototype.Utils.prototype.addERC20Asset = function (address, tokenAmount) {
+SDK.prototype.Utils.prototype.addERC20Asset = function(address, tokenAmount) {
     if (isNaN(tokenAmount))
         throw new Error('tokenAmount must be a numeric value.')
     this.assetsArray.push([address, this.tokenConstants.ERC20, [], [tokenAmount], [0], []])
@@ -498,10 +498,10 @@ SDK.prototype.Utils.prototype.addERC20Asset = function (address, tokenAmount) {
  * @param {string} address - the ERC721 token address.
  * @param {Array} tokenIds - the ids of the ERC721 token used.
  */
-SDK.prototype.Utils.prototype.addERC721Asset = function (address, tokenIds = []) {
+SDK.prototype.Utils.prototype.addERC721Asset = function(address, tokenIds = []) {
     if (!(tokenIds instanceof Array))
         throw new Error('tokenIds must be an array.')
-    if (tokenIds.length == 0)
+    if (tokenIds.length === 0)
         throw new Error('tokenIds must have at least one element.')
     this.assetsArray.push([address, this.tokenConstants.ERC721, tokenIds, [], [], []])
 }
@@ -514,16 +514,16 @@ SDK.prototype.Utils.prototype.addERC721Asset = function (address, tokenIds = [])
  * @param {Array} tokenAmounts - the amounts of the ERC1155 token used.
  * 
  */
-SDK.prototype.Utils.prototype.addERC1155Asset = function (address, tokenIds = [], tokenAmounts = []) {
+SDK.prototype.Utils.prototype.addERC1155Asset = function(address, tokenIds = [], tokenAmounts = []) {
     if (!(tokenIds instanceof Array))
         throw new Error('tokenIds must be an array.')
     if (!(tokenAmounts instanceof Array))
         throw new Error('tokenAmounts must be an array.')
     if (tokenIds.length != tokenAmounts.length)
         throw new Error('tokenIds array must have the same size of tokenAmounts array.')
-    if (tokenIds.length == 0)
+    if (tokenIds.length === 0)
         throw new Error('tokenIds must have at least one element.')
-    if (tokenAmounts.length == 0)
+    if (tokenAmounts.length === 0)
         throw new Error('tokenAmounts must have at least one element.')
 
     this.assetsArray.push([address, this.tokenConstants.ERC1155, tokenIds, tokenAmounts, [], []])
@@ -532,14 +532,14 @@ SDK.prototype.Utils.prototype.addERC1155Asset = function (address, tokenIds = []
 /**
  * Clear the assets Array
  */
-SDK.prototype.Utils.prototype.clearAssetsArray = function () {
+SDK.prototype.Utils.prototype.clearAssetsArray = function() {
     this.assetsArray = []
 }
 
 /**
  * Returns the assets Array
  */
-SDK.prototype.Utils.prototype.getAssetsArray = function () {
+SDK.prototype.Utils.prototype.getAssetsArray = function() {
     return this.assetsArray
 }
 
@@ -548,7 +548,7 @@ SDK.prototype.Utils.prototype.getAssetsArray = function () {
  * 
  * @class SDK.WebSocketProvider
  */
-SDK.prototype.WebSocketProvider = function ({wssUrl, network = null}) {
+SDK.prototype.WebSocketProvider = function({wssUrl, network = null}) {
     if (typeof wssUrl != 'string')
         throw new Error('wssUrl must be a string.')
     
@@ -570,7 +570,7 @@ SDK.prototype.WebSocketProvider = function ({wssUrl, network = null}) {
  * @param {Function} callback - the callback function to execute.
  * 
  */
-SDK.prototype.WebSocketProvider.prototype.onSwapEvent = function (callback) {
+SDK.prototype.WebSocketProvider.prototype.onSwapEvent = function(callback) {
     if (typeof callback != 'function' && callback != null)
         throw new Error('callback must be a Function.')
 
@@ -593,7 +593,7 @@ SDK.prototype.WebSocketProvider.prototype.onSwapEvent = function (callback) {
  * @param {Function} callback - the callback function to execute.
  * 
  */
-SDK.prototype.WebSocketProvider.prototype.onCounterpartEvent = function (callback) {
+SDK.prototype.WebSocketProvider.prototype.onCounterpartEvent = function(callback) {
     if (typeof callback != 'function' && callback != null)
         throw new Error('callback must be a Function.')
 
@@ -616,7 +616,7 @@ SDK.prototype.WebSocketProvider.prototype.onCounterpartEvent = function (callbac
  * @param {Function} callback - the callback function to execute.
  * 
  */
-SDK.prototype.WebSocketProvider.prototype.onPaymentReceived = function (callback) {
+SDK.prototype.WebSocketProvider.prototype.onPaymentReceived = function(callback) {
     if (typeof callback != 'function' && callback != null)
         throw new Error('callback must be a Function.')
 
