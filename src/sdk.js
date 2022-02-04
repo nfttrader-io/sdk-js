@@ -1,5 +1,5 @@
 const ethers = require('ethers')
-const {swap, contractAbi} = require('./contracts')
+const {swap, contractAbi, erc721Abi} = require('./contracts')
 const {events} = require('./events')
 
 /**
@@ -153,30 +153,30 @@ SDK.prototype.setBlocksNumberConfirmationRequired = function(blocksNumberConfirm
 /**
  * Create the swap 
  * 
- * @param {Object} obj - createSwap configuration object.
- * @param {number} obj.ethMaker - the ethereum amount provided by the creator of the swap.
- * @param {string} obj.taker - the taker (counterparty) of the swap.
- * @param {number} obj.ethTaker - the ethereum amount provided by the taker (counterparty) of the swap.
- * @param {Array} obj.assetsMaker - the assets (ERC20/ERC721/ERC1155) provided by the creator of the swap
- * @param {Array} obj.assetsTaker - the assets (ERC20/ERC721/ERC1155) provided by the taker (counterparty) of the swap
- * @param {string} obj.referralAddress - the referral address of the transaction.
+ * @param {number} ethMaker - the ethereum amount provided by the creator of the swap.
+ * @param {string} taker - the taker (counterparty) of the swap.
+ * @param {number} ethTaker - the ethereum amount provided by the taker (counterparty) of the swap.
+ * @param {number} swapEnd - the number of the days representing the validity of the swap
+ * @param {Array} assetsMaker - the assets (ERC20/ERC721/ERC1155) provided by the creator of the swap
+ * @param {Array} assetsTaker - the assets (ERC20/ERC721/ERC1155) provided by the taker (counterparty) of the swap
+ * @param {string} referralAddress - the referral address of the transaction.
  */
-SDK.prototype.createSwap = async function({ethMaker, taker, ethTaker, assetsMaker = [], assetsTaker = [], referralAddress = ''}) {
+SDK.prototype.createSwap = async function(ethMaker, taker, ethTaker, swapEnd = 0, assetsMaker = [], assetsTaker = [], referralAddress = '0x0000000000000000000000000000000000000000') {
     if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
         throw new Error('you cannot create a swap when you\'re in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction.')
+    if(swapEnd < 0)
+        throw new Error('swapEnd cannot be lower than zero.')
 
-    const payment = await this.getPayment()
     const swapId = 0
     const addressMaker = this.isJsonRpcProvider ? this.signer.address : ((await this.provider.listAccounts())[0])
     const discountMaker = false
     const valueMaker = ethMaker
-    const flatFeeMaker = payment.flagFlatFee ? payment.flatFee.toNumber() : 0
+    const flatFeeMaker = 0
     const addressTaker = taker
     const discountTaker = false
     const valueTaker = ethTaker
     const flatFeeTaker = 0
     const swapStart = 0
-    const swapEnd = 0
     const flagFlatFee = false
     const flagRoyalties = false
     const status = 0
@@ -201,9 +201,30 @@ SDK.prototype.createSwap = async function({ethMaker, taker, ethTaker, assetsMake
         royaltiesTaker
     ]
 
+    let hasSquad = false
+    let fee
+
+    try {
+        const {TRADESQUAD, PARTNERSQUAD} = await this.getReferenceAddress()
+        const contractTradeSquad = new ethers.Contract(TRADESQUAD, erc721Abi, this.provider)
+        const contractPartnerSquad = new ethers.Contract(PARTNERSQUAD, erc721Abi, this.provider)
+        
+        const balanceTradeSquad = await contractTradeSquad.balanceOf(addressMaker)
+        const balancePartnerSquad = await contractPartnerSquad.balanceOf(addressMaker)
+
+        if (balanceTradeSquad.toNumber() > 0 || balancePartnerSquad.toNumber() > 0) {
+            const {flagFlatFee, flatFee} = await this.getPayment()
+
+            fee = flagFlatFee ? flatFee.toNumber() : 0
+            hasSquad = true
+        }
+    } catch (error) {
+        throw new Error(error)
+    }
+
     if (this.isJsonRpcProvider) {
         try {
-            await this.contract.createSwapIntent(swapIntent, assetsMaker, assetsTaker, referralAddress).then((tx) => {
+            await this.contract.createSwapIntent(swapIntent, assetsMaker, assetsTaker, referralAddress, {value : hasSquad ? valueMaker.toNumber() : (valueMaker.toNumber() + fee)}).then(async(tx) => {
                 this.__emit('createSwapTransactionCreated', {tx})
                 await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
                     this.__emit('createSwapTransactionMined', {receipt})
@@ -222,7 +243,7 @@ SDK.prototype.createSwap = async function({ethMaker, taker, ethTaker, assetsMake
         try {
             const signer = this.provider.getSigner(addressMaker)
             const contract = this.contract.connect(signer)
-            await contract.createSwapIntent(swapIntent, assetsMaker, assetsTaker, referralAddress).then((tx) => {
+            await contract.createSwapIntent(swapIntent, assetsMaker, assetsTaker, referralAddress, {value : hasSquad ? valueMaker.toNumber() : (valueMaker.toNumber() + fee)}).then(async(tx) => {
                 this.__emit('createSwapTransactionCreated', {tx})
                 await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
                     this.__emit('createSwapTransactionMined', {receipt})
@@ -240,52 +261,74 @@ SDK.prototype.createSwap = async function({ethMaker, taker, ethTaker, assetsMake
 }
 
 /**
- * Close the swap. Only the taker (counterparty) can close it.
- * 
- * @param {string} maker - the swap creator address.
+ * Close the swap. Only the taker (counterparty) can close it if its address is specified. Otherwise everyone can close the swap.
+ * @param {string} maker - the maker (creator) of the swap.
  * @param {number} swapId - the identifier of the swap.
  * @param {string} referralAddress - the referral address of the transaction.
  */
-SDK.prototype.closeSwap = async function(maker, swapId, referralAddress = '') {
+SDK.prototype.closeSwap = async function(maker, swapId, referralAddress = '0x0000000000000000000000000000000000000000') {
     if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
         throw new Error('you cannot close a swap when you\'re in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction.')
+    //controllo sui tradesquad e partnersquad sull'address del taker
+    //come parametro della funzione mi serve solo swapId perchè da li posso recuperarmi il maker e ethTaker
+    try {
+        let hasSquad = false
+        let fee
+        const taker = this.isJsonRpcProvider ? this.signer.address : ((await this.provider.listAccounts())[0])
+        const {valueTaker} = await this.getSwapDetails(maker, swapId)
+        const {TRADESQUAD, PARTNERSQUAD} = await this.getReferenceAddress()
+        const contractTradeSquad = new ethers.Contract(TRADESQUAD, erc721Abi, this.provider)
+        const contractPartnerSquad = new ethers.Contract(PARTNERSQUAD, erc721Abi, this.provider)
+        
+        const balanceTradeSquad = await contractTradeSquad.balanceOf(taker)
+        const balancePartnerSquad = await contractPartnerSquad.balanceOf(taker)
 
-    if (this.isJsonRpcProvider) {
-        try {
-            await this.contract.closeSwapIntent(maker, swapId, referralAddress).then((tx) => {
-                this.__emit('closeSwapTransactionCreated', {tx})
-                await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
-                    this.__emit('closeSwapTransactionMined', {receipt})
+        if (balanceTradeSquad.toNumber() > 0 || balancePartnerSquad.toNumber() > 0) {
+            const {flagFlatFee, flatFee} = await this.getPayment()
+
+            fee = flagFlatFee ? flatFee.toNumber() : 0
+            hasSquad = true
+        }
+        
+        if (this.isJsonRpcProvider) {
+            try {
+                await this.contract.closeSwapIntent(maker, swapId, referralAddress, {value : hasSquad ? valueTaker.toNumber() : (valueTaker.toNumber() + fee)}).then(async(tx) => {
+                    this.__emit('closeSwapTransactionCreated', {tx})
+                    await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
+                        this.__emit('closeSwapTransactionMined', {receipt})
+                    }).catch((error) => {
+                        this.__emit('closeSwapTransactionError', {error, typeError : 'waitError'})
+                        throw new Error(error)
+                    })
                 }).catch((error) => {
-                    this.__emit('closeSwapTransactionError', {error, typeError : 'waitError'})
+                    this.__emit('closeSwapTransactionError', {error, typeError : 'closeSwapIntentError'})
                     throw new Error(error)
                 })
-            }).catch((error) => {
-                this.__emit('closeSwapTransactionError', {error, typeError : 'closeSwapIntentError'})
+            } catch (error) {
                 throw new Error(error)
-            })
-        } catch (error) {
-            throw new Error(error)
-        }
-    } else if (this.isWeb3Provider) {
-        try {
-            const signer = (await this.provider.listAccounts())[0]
-            const contract = this.contract.connect(signer)
-            await contract.closeSwapIntent(maker, swapId, referralAddress).then((tx) => {
-                this.__emit('closeSwapTransactionCreated', {tx})
-                await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
-                    this.__emit('closeSwapTransactionMined', {receipt})
+            }
+        } else if (this.isWeb3Provider) {
+            try {
+                const signer = (await this.provider.listAccounts())[0]
+                const contract = this.contract.connect(signer)
+                await contract.closeSwapIntent(maker, swapId, referralAddress, {value: hasSquad ? valueTaker.toNumber() : valueTaker.toNumber() + fee}).then(async(tx) => {
+                    this.__emit('closeSwapTransactionCreated', {tx})
+                    await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
+                        this.__emit('closeSwapTransactionMined', {receipt})
+                    }).catch((error) => {
+                        this.__emit('closeSwapTransactionError', {error, typeError : 'waitError'})
+                        throw new Error(error)
+                    })
                 }).catch((error) => {
-                    this.__emit('closeSwapTransactionError', {error, typeError : 'waitError'})
+                    this.__emit('closeSwapTransactionError', {error, typeError : 'closeSwapIntentError'})
                     throw new Error(error)
                 })
-            }).catch((error) => {
-                this.__emit('closeSwapTransactionError', {error, typeError : 'closeSwapIntentError'})
+            } catch (error) {
                 throw new Error(error)
-            })
-        } catch (error) {
-            throw new Error(error)
+            }
         }
+    } catch (error) {
+        throw new Error(error)
     }
 }
 
@@ -300,7 +343,7 @@ SDK.prototype.cancelSwap = async function(swapId) {
 
     if (this.isJsonRpcProvider) {
         try {
-            await this.contract.cancelSwapIntent(swapId).then((tx) => {
+            await this.contract.cancelSwapIntent(swapId).then(async(tx) => {
                 this.__emit('cancelSwapTransactionCreated', {tx})
                 await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
                     this.__emit('cancelSwapTransactionMined', {receipt})
@@ -319,7 +362,7 @@ SDK.prototype.cancelSwap = async function(swapId) {
         try {
             const signer = (await this.provider.listAccounts())[0]
             const contract = this.contract.connect(signer)
-            await contract.cancelSwapIntent(swapId).then((tx) => {
+            await contract.cancelSwapIntent(swapId).then(async(tx) => {
                 this.__emit('cancelSwapTransactionCreated', {tx})
                 await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
                     this.__emit('cancelSwapTransactionMined', {receipt})
@@ -349,7 +392,7 @@ SDK.prototype.editTaker = async function(swapId, addressTaker) {
 
     if (this.isJsonRpcProvider) {
         try {
-            await this.contract.editCounterPart(swapId, addressTaker).then((tx) => {
+            await this.contract.editCounterPart(swapId, addressTaker).then(async(tx) => {
                 this.__emit('editTakerTransactionCreated', {tx})
                 await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
                     this.__emit('editTakerTransactionMined', {receipt})
@@ -368,7 +411,7 @@ SDK.prototype.editTaker = async function(swapId, addressTaker) {
         try {
             const signer = (await this.provider.listAccounts())[0]
             const contract = this.contract.connect(signer)
-            await contract.editCounterPart(swapId, addressTaker).then((tx) => {
+            await contract.editCounterPart(swapId, addressTaker).then(async(tx) => {
                 this.__emit('editTakerTransactionCreated', {tx})
                 await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
                     this.__emit('editTakerTransactionMined', {receipt})
@@ -394,7 +437,7 @@ SDK.prototype.editTaker = async function(swapId, addressTaker) {
  */
 SDK.prototype.getSwapDetails = async function(maker, swapId) {
     try {
-        return (await this.contract.getSwapIntentByAddress(maker, swapId))
+        return ({ id, addressMaker, discountMaker, valueMaker, flatFeeMaker, addressTaker, discountTaker, valueTaker, flatFeeTaker, swapStart, swapEnd, flagFlatFee, flagRoyalties, status, royaltiesMaker, royaltiesTaker } = (await this.contract.getSwapIntentByAddress(maker, swapId)))
     } catch (error) {
         throw new Error(error)
     }
@@ -460,7 +503,18 @@ SDK.prototype.getNFTBlacklist = async function(assetAddress) {
  */
 SDK.prototype.getPayment = async function() {
     try {
-        return (await this.contract.getPaymentStruct())
+        return ({ flagFlatFee, flagRoyalties, flatFee, bps, scalePercent } = (await this.contract.payment()))
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
+/**
+ * Returns the reference address struct configuration of the smart contract.
+ */
+SDK.prototype.getReferenceAddress = async function() {
+    try {
+        return ({ ROYALTYENGINEADDRESS, TRADESQUAD, PARTNERSQUAD, VAULT } = (await this.contract.referenceAddress()))
     } catch (error) {
         throw new Error(error)
     }
@@ -568,18 +622,24 @@ SDK.prototype.WebSocketProvider = function({wssUrl, network = null}) {
  * Execute the callback when a SwapEvent is emitted by the smart contract.
  * 
  * @param {Function} callback - the callback function to execute.
- * 
+ * @param {Object} topicObject - the topic object for filtering a specific swapEvent
+ * @param {string} topicObject.creator - the creator address of the swap.
+ * @param {number} topicObject.time - the creation time of the swap.
+ * @param {number} topicObject.status - the status of the swap.
  */
-SDK.prototype.WebSocketProvider.prototype.onSwapEvent = function(callback) {
+SDK.prototype.WebSocketProvider.prototype.onSwapEvent = function(callback, {creator = null, time = null, status = null}) {
     if (callback === null || typeof callback === 'undefined')
         throw new Error('callback must be provided')
-    if (typeof callback !== 'function' && callback !== null)
+    if (typeof callback !== 'function')
         throw new Error('callback must be a Function.')
 
     const filter = {
         address: this.contractAddressWebSocketProvider,
         topics: [
             ethersJs.utils.id('swapEvent(address,uint256,uint8,uint256,address,address)'),
+            creator ? creator : null,
+            time ? time : null,
+            status ? status : null
         ]
     }
 
@@ -592,18 +652,23 @@ SDK.prototype.WebSocketProvider.prototype.onSwapEvent = function(callback) {
  * Execute the callback when a CounterpartEvent is emitted by the smart contract.
  * 
  * @param {Function} callback - the callback function to execute.
+ * @param {Object} topicObject - the topic object for filtering a specific counterpartEvent
+ * @param {number} topicObject.swapId - the swap identifier.
+ * @param {string} topicObject.counterpart - the address of the counterpart.
  * 
  */
-SDK.prototype.WebSocketProvider.prototype.onCounterpartEvent = function(callback) {
+SDK.prototype.WebSocketProvider.prototype.onCounterpartEvent = function(callback, {swapId = null, counterpart = null}) {
     if (callback === null || typeof callback === 'undefined')
         throw new Error('callback must be provided')
-    if (typeof callback !== 'function' && callback !== null)
+    if (typeof callback !== 'function')
         throw new Error('callback must be a Function.')
 
     const filter = {
         address: this.contractAddressWebSocketProvider,
         topics: [
-            ethersJs.utils.id('swapEvent(uint256,address)'),
+            ethersJs.utils.id('counterpartEvent(uint256,address)'),
+            swapId ? swapId : null,
+            counterpart ? counterpart : null
         ]
     }
 
@@ -616,18 +681,21 @@ SDK.prototype.WebSocketProvider.prototype.onCounterpartEvent = function(callback
  * Execute the callback when a PaymentReceived is emitted by the smart contract.
  * 
  * @param {Function} callback - the callback function to execute.
+ * @param {Object} topicObject - the topic object for filtering a specific paymentReceived.
+ * @param {string} topicObject.payer - the address of the payer.
  * 
  */
-SDK.prototype.WebSocketProvider.prototype.onPaymentReceived = function(callback) {
+SDK.prototype.WebSocketProvider.prototype.onPaymentReceived = function(callback, {payer = null}) {
     if (callback === null || typeof callback === 'undefined')
         throw new Error('callback must be provided')
-    if (typeof callback !== 'function' && callback !== null)
+    if (typeof callback !== 'function')
         throw new Error('callback must be a Function.')
 
     const filter = {
         address: this.contractAddressWebSocketProvider,
         topics: [
             ethersJs.utils.id('paymentReceived(address,uint256)'),
+            payer ? payer : null
         ]
     }
 

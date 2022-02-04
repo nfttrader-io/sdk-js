@@ -2,7 +2,8 @@ const SDK = require('./sdk')
 
 const run = ({web3Provider, jsonRpcProvider, signer, network}) => {
     const sdk = new SDK({web3Provider, jsonRpcProvider, signer, network})
-    const utils = new sdk.Utils()
+    //const utils = new sdk.Utils()
+    sdk.test()
 }
 
 run({
