@@ -53,7 +53,7 @@ function SDK({web3Provider, jsonRpcProvider, signer = null, network = '', avoidP
         this.isJsonRpcProvider = true
     }
 
-    if (typeof web3Provider != 'undefined' && web3Provider != null) {
+    if (typeof web3Provider !== 'undefined' && web3Provider !== null) {
         this.isWeb3Provider = true
     }
 
@@ -109,7 +109,7 @@ SDK.prototype.off = function(eventName, callback = null) {
     if (!event)
         throw new Error('event not supported.')
 
-    if (callback != null && typeof callback != 'function')
+    if (callback !== null && typeof callback !== 'function')
         throw new Error('callback must be a Function.')
 
     if (callback) {
@@ -519,7 +519,7 @@ SDK.prototype.Utils.prototype.addERC1155Asset = function(address, tokenIds = [],
         throw new Error('tokenIds must be an array.')
     if (!(tokenAmounts instanceof Array))
         throw new Error('tokenAmounts must be an array.')
-    if (tokenIds.length != tokenAmounts.length)
+    if (tokenIds.length !== tokenAmounts.length)
         throw new Error('tokenIds array must have the same size of tokenAmounts array.')
     if (tokenIds.length === 0)
         throw new Error('tokenIds must have at least one element.')
@@ -549,7 +549,7 @@ SDK.prototype.Utils.prototype.getAssetsArray = function() {
  * @class SDK.WebSocketProvider
  */
 SDK.prototype.WebSocketProvider = function({wssUrl, network = null}) {
-    if (typeof wssUrl != 'string')
+    if (typeof wssUrl !== 'string')
         throw new Error('wssUrl must be a string.')
     
     try {
@@ -571,7 +571,9 @@ SDK.prototype.WebSocketProvider = function({wssUrl, network = null}) {
  * 
  */
 SDK.prototype.WebSocketProvider.prototype.onSwapEvent = function(callback) {
-    if (typeof callback != 'function' && callback != null)
+    if (callback === null || typeof callback === 'undefined')
+        throw new Error('callback must be provided')
+    if (typeof callback !== 'function' && callback !== null)
         throw new Error('callback must be a Function.')
 
     const filter = {
@@ -582,8 +584,7 @@ SDK.prototype.WebSocketProvider.prototype.onSwapEvent = function(callback) {
     }
 
     this.webSocketProvider.on(filter, (event) => {
-        if (callback)
-            callback(event)
+        callback(event)
     })
 }
 
@@ -594,7 +595,9 @@ SDK.prototype.WebSocketProvider.prototype.onSwapEvent = function(callback) {
  * 
  */
 SDK.prototype.WebSocketProvider.prototype.onCounterpartEvent = function(callback) {
-    if (typeof callback != 'function' && callback != null)
+    if (callback === null || typeof callback === 'undefined')
+        throw new Error('callback must be provided')
+    if (typeof callback !== 'function' && callback !== null)
         throw new Error('callback must be a Function.')
 
     const filter = {
@@ -605,8 +608,7 @@ SDK.prototype.WebSocketProvider.prototype.onCounterpartEvent = function(callback
     }
 
     this.webSocketProvider.on(filter, (event) => {
-        if (callback)
-            callback(event)
+        callback(event)
     })
 }
 
@@ -617,7 +619,9 @@ SDK.prototype.WebSocketProvider.prototype.onCounterpartEvent = function(callback
  * 
  */
 SDK.prototype.WebSocketProvider.prototype.onPaymentReceived = function(callback) {
-    if (typeof callback != 'function' && callback != null)
+    if (callback === null || typeof callback === 'undefined')
+        throw new Error('callback must be provided')
+    if (typeof callback !== 'function' && callback !== null)
         throw new Error('callback must be a Function.')
 
     const filter = {
@@ -628,8 +632,7 @@ SDK.prototype.WebSocketProvider.prototype.onPaymentReceived = function(callback)
     }
 
     this.webSocketProvider.on(filter, (event) => {
-        if (callback)
-            callback(event)
+        callback(event)
     })
 }
 
