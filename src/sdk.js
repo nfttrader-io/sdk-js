@@ -109,7 +109,7 @@ SDK.prototype.off = function(eventName, callback = null) {
     if (!event)
         throw new Error('event not supported.')
 
-    if (callback !== null && typeof callback !== 'function')
+    if (callback !== null && typeof callback !== 'function' && typeof callback !== 'undefined')
         throw new Error('callback must be a Function.')
 
     if (callback) {
