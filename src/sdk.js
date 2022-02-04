@@ -3,7 +3,7 @@ const {swap, contractAbi, erc721Abi} = require('./contracts')
 const {events} = require('./events')
 
 /**
- * Create an instance of the SDK object.
+ * Create an instance of the SDK objects.
  *
  * @param {Object} obj - configuration object for the SDK instance.
  * @param {Provider} obj.web3Provider - the handler object for the interaction with the chain.
