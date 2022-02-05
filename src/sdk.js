@@ -108,7 +108,7 @@ SDK.prototype.off = function(eventName, callback = null) {
     const event = this.eventsCollectorCallbacks.find((eventItem) => {
         return eventItem.name === eventName
     })
-
+    console.log(this.eventsCollectorCallbacks)
     if (!event)
         throw new Error('event not supported.')
 
@@ -123,6 +123,8 @@ SDK.prototype.off = function(eventName, callback = null) {
     } else {
         event.callbacks = []
     }
+
+    console.log(this.eventsCollectorCallbacks)
 }
 
 /**
