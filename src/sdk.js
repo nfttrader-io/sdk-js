@@ -73,6 +73,9 @@ function SDK({web3Provider, jsonRpcProvider, signer = null, network = '', avoidP
 
         this.contractAddress = swap[network]
         this.contract = new ethers.Contract(this.contractAddress, contractAbi, this.provider)
+
+        if (this.isJsonRpcProvider && this.avoidPrivateKeySigner === false)
+            this.contract = this.contract.connect(this.signer)
     } catch (error) {
         throw new Error(error)
     }
@@ -147,21 +150,26 @@ SDK.prototype.__emit = function(eventName, params = {}) {
  * @param {number} blocksNumberConfirmationRequired - the number of the mined blocks to wait for considering a transaction valid.
  */
 SDK.prototype.setBlocksNumberConfirmationRequired = function(blocksNumberConfirmationRequired = 0) {
+    if (blocksNumberConfirmationRequired < 0)
+        throw new Error('blocksNumberConfirmationRequired cannot be lower than zero.')
     this.blocksNumberConfirmationRequired = blocksNumberConfirmationRequired
 }
 
 /**
  * Create the swap 
  * 
- * @param {number} ethMaker - the ethereum amount provided by the creator of the swap.
- * @param {string} taker - the taker (counterparty) of the swap.
- * @param {number} ethTaker - the ethereum amount provided by the taker (counterparty) of the swap.
- * @param {number} swapEnd - the number of the days representing the validity of the swap
- * @param {Array} assetsMaker - the assets (ERC20/ERC721/ERC1155) provided by the creator of the swap
- * @param {Array} assetsTaker - the assets (ERC20/ERC721/ERC1155) provided by the taker (counterparty) of the swap
- * @param {string} referralAddress - the referral address of the transaction.
+ * @param {Object} createSwapObj - the createSwap configuration object
+ * @param {number} createSwapObj.ethMaker - the ethereum amount provided by the creator of the swap.
+ * @param {string} createSwapObj.taker - the taker (counterparty) of the swap.
+ * @param {number} createSwapObj.ethTaker - the ethereum amount provided by the taker (counterparty) of the swap.
+ * @param {number} createSwapObj.swapEnd - the number of the days representing the validity of the swap
+ * @param {Array} createSwapObj.assetsMaker - the assets (ERC20/ERC721/ERC1155) provided by the creator of the swap
+ * @param {Array} createSwapObj.assetsTaker - the assets (ERC20/ERC721/ERC1155) provided by the taker (counterparty) of the swap
+ * @param {string} createSwapObj.referralAddress - the referral address of the transaction.
+ * @param {number} gasLimit - the gas limit of the transaction
+ * @param {string} gasPrice - the gas price of the transaction
  */
-SDK.prototype.createSwap = async function(ethMaker, taker, ethTaker, swapEnd = 0, assetsMaker = [], assetsTaker = [], referralAddress = '0x0000000000000000000000000000000000000000') {
+SDK.prototype.createSwap = async function({ethMaker, taker, ethTaker, swapEnd = 0, assetsMaker = [], assetsTaker = [], referralAddress = '0x0000000000000000000000000000000000000000'}, gasLimit = 2000000, gasPrice = null) {
     if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
         throw new Error('you cannot create a swap when you\'re in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction.')
     if(swapEnd < 0)
@@ -170,11 +178,11 @@ SDK.prototype.createSwap = async function(ethMaker, taker, ethTaker, swapEnd = 0
     const swapId = 0
     const addressMaker = this.isJsonRpcProvider ? this.signer.address : ((await this.provider.listAccounts())[0])
     const discountMaker = false
-    const valueMaker = ethMaker
+    const valueMaker = ethers.BigNumber.from(ethMaker.toString())
     const flatFeeMaker = 0
     const addressTaker = taker
     const discountTaker = false
-    const valueTaker = ethTaker
+    const valueTaker = ethers.BigNumber.from(ethTaker.toString())
     const flatFeeTaker = 0
     const swapStart = 0
     const flagFlatFee = false
@@ -186,11 +194,11 @@ SDK.prototype.createSwap = async function(ethMaker, taker, ethTaker, swapEnd = 0
         swapId,
         addressMaker,
         discountMaker,
-        valueMaker,
+        valueMaker.toString(),
         flatFeeMaker,
         addressTaker,
         discountTaker,
-        valueTaker,
+        valueTaker.toString(),
         flatFeeTaker,
         swapStart,
         swapEnd,
@@ -205,6 +213,9 @@ SDK.prototype.createSwap = async function(ethMaker, taker, ethTaker, swapEnd = 0
     let fee
 
     try {
+        const {flagFlatFee, flatFee} = await this.getPayment()
+        fee = flagFlatFee ? flatFee.toNumber() : 0
+
         const {TRADESQUAD, PARTNERSQUAD} = await this.getReferenceAddress()
         const contractTradeSquad = new ethers.Contract(TRADESQUAD, erc721Abi, this.provider)
         const contractPartnerSquad = new ethers.Contract(PARTNERSQUAD, erc721Abi, this.provider)
@@ -212,29 +223,30 @@ SDK.prototype.createSwap = async function(ethMaker, taker, ethTaker, swapEnd = 0
         const balanceTradeSquad = await contractTradeSquad.balanceOf(addressMaker)
         const balancePartnerSquad = await contractPartnerSquad.balanceOf(addressMaker)
 
-        if (balanceTradeSquad.toNumber() > 0 || balancePartnerSquad.toNumber() > 0) {
-            const {flagFlatFee, flatFee} = await this.getPayment()
-
-            fee = flagFlatFee ? flatFee.toNumber() : 0
+        if (balanceTradeSquad.toNumber() > 0 || balancePartnerSquad.toNumber() > 0)
             hasSquad = true
-        }
+        
     } catch (error) {
         throw new Error(error)
     }
 
+    let txOverrides = {}
+    txOverrides['value'] = hasSquad ? valueMaker.toString() : (valueMaker.add(fee)).toString()
+    gasLimit && (txOverrides['gasLimit'] = gasLimit)
+    gasPrice && (txOverrides['gasPrice'] = gasPrice)
+
     if (this.isJsonRpcProvider) {
-        try {
-            await this.contract.createSwapIntent(swapIntent, assetsMaker, assetsTaker, referralAddress, {value : hasSquad ? valueMaker.toNumber() : (valueMaker.toNumber() + fee)}).then(async(tx) => {
+        try {     
+                  
+            await this.contract.createSwapIntent(swapIntent, assetsMaker, assetsTaker, referralAddress, {...txOverrides}).then(async(tx) => {
                 this.__emit('createSwapTransactionCreated', {tx})
                 await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
                     this.__emit('createSwapTransactionMined', {receipt})
                 }).catch((error) => {
                     this.__emit('createSwapTransactionError', {error, typeError : 'waitError'})
-                    throw new Error(error)
                 })
             }).catch((error) => {
                 this.__emit('createSwapTransactionError', {error, typeError : 'createSwapIntentError'})
-                throw new Error(error)
             })
         } catch (error) {
             throw new Error(error)
@@ -243,7 +255,7 @@ SDK.prototype.createSwap = async function(ethMaker, taker, ethTaker, swapEnd = 0
         try {
             const signer = this.provider.getSigner(addressMaker)
             const contract = this.contract.connect(signer)
-            await contract.createSwapIntent(swapIntent, assetsMaker, assetsTaker, referralAddress, {value : hasSquad ? valueMaker.toNumber() : (valueMaker.toNumber() + fee)}).then(async(tx) => {
+            await contract.createSwapIntent(swapIntent, assetsMaker, assetsTaker, referralAddress, {...txOverrides}).then(async(tx) => {
                 this.__emit('createSwapTransactionCreated', {tx})
                 await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
                     this.__emit('createSwapTransactionMined', {receipt})
@@ -252,7 +264,6 @@ SDK.prototype.createSwap = async function(ethMaker, taker, ethTaker, swapEnd = 0
                 })
             }).catch((error) => {
                 this.__emit('createSwapTransactionError', {error, typeError : 'createSwapIntentError'})
-                throw new Error(error)
             })
         } catch (error) {
             throw new Error(error)
@@ -262,18 +273,24 @@ SDK.prototype.createSwap = async function(ethMaker, taker, ethTaker, swapEnd = 0
 
 /**
  * Close the swap. Only the taker (counterparty) can close it if its address is specified. Otherwise everyone can close the swap.
- * @param {string} maker - the maker (creator) of the swap.
- * @param {number} swapId - the identifier of the swap.
- * @param {string} referralAddress - the referral address of the transaction.
+ * 
+ * @param {Object} closeSwapObj - the closeSwap configuration object
+ * @param {string} closeSwapObj.maker - the maker (creator) of the swap.
+ * @param {number} closeSwapObj.swapId - the identifier of the swap.
+ * @param {string} closeSwapObj.referralAddress - the referral address of the transaction.
+ * @param {string} closeSwapObj.referralAddress - the referral address of the transaction.
+ * @param {string} closeSwapObj.referralAddress - the referral address of the transaction.
+ * @param {number} gasLimit - the gas limit of the transaction
+ * @param {string} gasPrice - the gas price of the transaction
  */
-SDK.prototype.closeSwap = async function(maker, swapId, referralAddress = '0x0000000000000000000000000000000000000000') {
+SDK.prototype.closeSwap = async function({maker, swapId, referralAddress = '0x0000000000000000000000000000000000000000'}, gasLimit = 2000000, gasPrice = null) {
     if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
         throw new Error('you cannot close a swap when you\'re in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction.')
-    //controllo sui tradesquad e partnersquad sull'address del taker
-    //come parametro della funzione mi serve solo swapId perchè da li posso recuperarmi il maker e ethTaker
+
     try {
         let hasSquad = false
-        let fee
+        const {flagFlatFee, flatFee} = await this.getPayment()
+        const fee = flagFlatFee ? flatFee.toNumber() : 0
         const taker = this.isJsonRpcProvider ? this.signer.address : ((await this.provider.listAccounts())[0])
         const {valueTaker} = await this.getSwapDetails(maker, swapId)
         const {TRADESQUAD, PARTNERSQUAD} = await this.getReferenceAddress()
@@ -283,26 +300,25 @@ SDK.prototype.closeSwap = async function(maker, swapId, referralAddress = '0x000
         const balanceTradeSquad = await contractTradeSquad.balanceOf(taker)
         const balancePartnerSquad = await contractPartnerSquad.balanceOf(taker)
 
-        if (balanceTradeSquad.toNumber() > 0 || balancePartnerSquad.toNumber() > 0) {
-            const {flagFlatFee, flatFee} = await this.getPayment()
+        let txOverrides = {}
+        txOverrides['value'] = hasSquad ? valueTaker.toString() : (valueTaker.add(fee)).toString()
+        gasLimit && (txOverrides['gasLimit'] = gasLimit)
+        gasPrice && (txOverrides['gasPrice'] = gasPrice)
 
-            fee = flagFlatFee ? flatFee.toNumber() : 0
+        if (balanceTradeSquad.toNumber() > 0 || balancePartnerSquad.toNumber() > 0)
             hasSquad = true
-        }
         
         if (this.isJsonRpcProvider) {
             try {
-                await this.contract.closeSwapIntent(maker, swapId, referralAddress, {value : hasSquad ? valueTaker.toNumber() : (valueTaker.toNumber() + fee)}).then(async(tx) => {
+                await this.contract.closeSwapIntent(maker, swapId, referralAddress, {...txOverrides}).then(async(tx) => {
                     this.__emit('closeSwapTransactionCreated', {tx})
                     await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
                         this.__emit('closeSwapTransactionMined', {receipt})
                     }).catch((error) => {
                         this.__emit('closeSwapTransactionError', {error, typeError : 'waitError'})
-                        throw new Error(error)
                     })
                 }).catch((error) => {
                     this.__emit('closeSwapTransactionError', {error, typeError : 'closeSwapIntentError'})
-                    throw new Error(error)
                 })
             } catch (error) {
                 throw new Error(error)
@@ -311,17 +327,15 @@ SDK.prototype.closeSwap = async function(maker, swapId, referralAddress = '0x000
             try {
                 const signer = (await this.provider.listAccounts())[0]
                 const contract = this.contract.connect(signer)
-                await contract.closeSwapIntent(maker, swapId, referralAddress, {value: hasSquad ? valueTaker.toNumber() : valueTaker.toNumber() + fee}).then(async(tx) => {
+                await contract.closeSwapIntent(maker, swapId, referralAddress, {...txOverrides}).then(async(tx) => {
                     this.__emit('closeSwapTransactionCreated', {tx})
                     await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
                         this.__emit('closeSwapTransactionMined', {receipt})
                     }).catch((error) => {
                         this.__emit('closeSwapTransactionError', {error, typeError : 'waitError'})
-                        throw new Error(error)
                     })
                 }).catch((error) => {
                     this.__emit('closeSwapTransactionError', {error, typeError : 'closeSwapIntentError'})
-                    throw new Error(error)
                 })
             } catch (error) {
                 throw new Error(error)
@@ -336,24 +350,28 @@ SDK.prototype.closeSwap = async function(maker, swapId, referralAddress = '0x000
  * Cancel the swap. Only the maker (creator) can cancel it.
  * 
  * @param {number} swapId - the identifier of the swap.
+ * @param {number} gasLimit - the gas limit of the transaction
+ * @param {string} gasPrice - the gas price of the transaction
  */
-SDK.prototype.cancelSwap = async function(swapId) {
+SDK.prototype.cancelSwap = async function(swapId, gasLimit = 2000000, gasPrice = null) {
     if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
         throw new Error('you cannot cancel a swap when you\'re in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction.')
 
+    let txOverrides = {}
+    gasLimit && (txOverrides['gasLimit'] = gasLimit)
+    gasPrice && (txOverrides['gasPrice'] = gasPrice)
+
     if (this.isJsonRpcProvider) {
         try {
-            await this.contract.cancelSwapIntent(swapId).then(async(tx) => {
+            await this.contract.cancelSwapIntent(swapId, {...txOverrides}).then(async(tx) => {
                 this.__emit('cancelSwapTransactionCreated', {tx})
                 await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
                     this.__emit('cancelSwapTransactionMined', {receipt})
                 }).catch((error) => {
                     this.__emit('cancelSwapTransactionError', {error, typeError : 'waitError'})
-                    throw new Error(error)
                 })
             }).catch((error) => {
                 this.__emit('cancelSwapTransactionError', {error, typeError : 'cancelSwapIntentError'})
-                throw new Error(error)
             })
         } catch (error) {
             throw new Error(error)
@@ -362,17 +380,15 @@ SDK.prototype.cancelSwap = async function(swapId) {
         try {
             const signer = (await this.provider.listAccounts())[0]
             const contract = this.contract.connect(signer)
-            await contract.cancelSwapIntent(swapId).then(async(tx) => {
+            await contract.cancelSwapIntent(swapId, {...txOverrides}).then(async(tx) => {
                 this.__emit('cancelSwapTransactionCreated', {tx})
                 await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
                     this.__emit('cancelSwapTransactionMined', {receipt})
                 }).catch((error) => {
                     this.__emit('cancelSwapTransactionError', {error, typeError : 'waitError'})
-                    throw new Error(error)
                 })
             }).catch((error) => {
                 this.__emit('cancelSwapTransactionError', {error, typeError : 'cancelSwapIntentError'})
-                throw new Error(error)
             })
         } catch (error) {
             throw new Error(error)
@@ -385,24 +401,28 @@ SDK.prototype.cancelSwap = async function(swapId) {
  * 
  * @param {number} swapId - the identifier of the swap.
  * @param {string} addressTaker - the address of the taker (counterparty).
+ * @param {number} gasLimit - the gas limit of the transaction
+ * @param {string} gasPrice - the gas price of the transaction
  */
-SDK.prototype.editTaker = async function(swapId, addressTaker) {
+SDK.prototype.editTaker = async function(swapId, addressTaker, gasLimit = 2000000, gasPrice = null) {
     if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
         throw new Error('you cannot edit the taker of a swap when you\'re in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction.')
 
+    let txOverrides = {}
+    gasLimit && (txOverrides['gasLimit'] = gasLimit)
+    gasPrice && (txOverrides['gasPrice'] = gasPrice)
+
     if (this.isJsonRpcProvider) {
         try {
-            await this.contract.editCounterPart(swapId, addressTaker).then(async(tx) => {
+            await this.contract.editCounterPart(swapId, addressTaker, {...txOverrides}).then(async(tx) => {
                 this.__emit('editTakerTransactionCreated', {tx})
                 await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
                     this.__emit('editTakerTransactionMined', {receipt})
                 }).catch((error) => {
                     this.__emit('editTakerTransactionError', {error, typeError : 'waitError'})
-                    throw new Error(error)
                 })
             }).catch((error) => {
                 this.__emit('editTakerTransactionError', {error, typeError : 'editCounterpartError'})
-                throw new Error(error)
             })
         } catch (error) {
             throw new Error(error)
@@ -411,17 +431,15 @@ SDK.prototype.editTaker = async function(swapId, addressTaker) {
         try {
             const signer = (await this.provider.listAccounts())[0]
             const contract = this.contract.connect(signer)
-            await contract.editCounterPart(swapId, addressTaker).then(async(tx) => {
+            await contract.editCounterPart(swapId, addressTaker, {...txOverrides}).then(async(tx) => {
                 this.__emit('editTakerTransactionCreated', {tx})
                 await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
                     this.__emit('editTakerTransactionMined', {receipt})
                 }).catch((error) => {
                     this.__emit('editTakerTransactionError', {error, typeError : 'waitError'})
-                    throw new Error(error)
                 })
             }).catch((error) => {
                 this.__emit('editTakerTransactionError', {error, typeError : 'editCounterpartError'})
-                throw new Error(error)
             })
         } catch (error) {
             throw new Error(error)
@@ -521,11 +539,11 @@ SDK.prototype.getReferenceAddress = async function() {
 }
 
 /**
- * SDK.Utils class. This class contains some utility methods for the SDK.
+ * SDK.AssetsArray class. This class represents an array of assets
  * 
- * @class SDK.Utils
+ * @class SDK.AssetsArray
  */
-SDK.prototype.Utils = function() {
+SDK.prototype.AssetsArray = function() {
     this.assetsArray = []
     this.tokenConstants = {
         ERC20 : 0,
@@ -540,10 +558,10 @@ SDK.prototype.Utils = function() {
  * @param {string} address - the ERC20 token address.
  * @param {number} tokenAmount - the amount of the token used.
  */
-SDK.prototype.Utils.prototype.addERC20Asset = function(address, tokenAmount) {
+SDK.prototype.AssetsArray.prototype.addERC20Asset = function(address, tokenAmount) {
     if (isNaN(tokenAmount))
         throw new Error('tokenAmount must be a numeric value.')
-    this.assetsArray.push([address, this.tokenConstants.ERC20, [], [tokenAmount], [0], []])
+    this.assetsArray.push([address, this.tokenConstants.ERC20, [], [(ethers.BigNumber.from(tokenAmount.toString())).toString()], [0], []])
 }
 
 /**
@@ -552,7 +570,7 @@ SDK.prototype.Utils.prototype.addERC20Asset = function(address, tokenAmount) {
  * @param {string} address - the ERC721 token address.
  * @param {Array} tokenIds - the ids of the ERC721 token used.
  */
-SDK.prototype.Utils.prototype.addERC721Asset = function(address, tokenIds = []) {
+SDK.prototype.AssetsArray.prototype.addERC721Asset = function(address, tokenIds = []) {
     if (!(tokenIds instanceof Array))
         throw new Error('tokenIds must be an array.')
     if (tokenIds.length === 0)
@@ -568,7 +586,7 @@ SDK.prototype.Utils.prototype.addERC721Asset = function(address, tokenIds = []) 
  * @param {Array} tokenAmounts - the amounts of the ERC1155 token used.
  * 
  */
-SDK.prototype.Utils.prototype.addERC1155Asset = function(address, tokenIds = [], tokenAmounts = []) {
+SDK.prototype.AssetsArray.prototype.addERC1155Asset = function(address, tokenIds = [], tokenAmounts = []) {
     if (!(tokenIds instanceof Array))
         throw new Error('tokenIds must be an array.')
     if (!(tokenAmounts instanceof Array))
@@ -586,14 +604,14 @@ SDK.prototype.Utils.prototype.addERC1155Asset = function(address, tokenIds = [],
 /**
  * Clear the assets Array
  */
-SDK.prototype.Utils.prototype.clearAssetsArray = function() {
+SDK.prototype.AssetsArray.prototype.clearAssetsArray = function() {
     this.assetsArray = []
 }
 
 /**
  * Returns the assets Array
  */
-SDK.prototype.Utils.prototype.getAssetsArray = function() {
+SDK.prototype.AssetsArray.prototype.getAssetsArray = function() {
     return this.assetsArray
 }
 

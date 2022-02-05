@@ -1,6 +1,6 @@
 const events = [
     'createSwapTransactionCreated',
-    'createSwatTransactionMined',
+    'createSwapTransactionMined',
     'createSwapTransactionError',
     'cancelSwapTransactionCreated',
     'cancelSwapTransactionMined',
