@@ -3,17 +3,17 @@ const {swap, contractAbi, erc721Abi} = require('./contracts')
 const {events} = require('./events')
 
 /**
- * Create an instance of the SDK object.
+ * Create an instance of the NFTTraderSDK object.
  *
  * @param {Object} obj - configuration object for the SDK instance.
  * @param {Provider} obj.web3Provider - the handler object for the interaction with the chain.
  * @param {string} obj.jsonRpcProvider - the RPC provider URL.
+ * @param {string} obj.network - the network of the chain
  * @param {Object} obj.signer - the signer object.
  * @param {string} obj.signer.privateKey - the private key of the signer.
- * @param {string} obj.network - the network of the chain
  * @param {bool} obj.avoidPrivateKeySigner - flag to avoid the private key when jsonRpcProvider is enabled
  */
-function SDK({web3Provider, jsonRpcProvider, signer = null, network = '', avoidPrivateKeySigner = false}) {
+function NFTTraderSDK({web3Provider, jsonRpcProvider, network, signer = null, avoidPrivateKeySigner = false}) {
     this.provider = null
     this.contractAddress = null
     this.contract = null
@@ -87,7 +87,7 @@ function SDK({web3Provider, jsonRpcProvider, signer = null, network = '', avoidP
  * @param {string} eventName - the name of the event.
  * @param {Function} callback - the callback function to execute once the event is fired.
  */
-SDK.prototype.on = function(eventName, callback) {
+NFTTraderSDK.prototype.on = function(eventName, callback) {
     const event = this.eventsCollectorCallbacks.find((eventItem) => {
         return eventItem.name === eventName
     })
@@ -104,11 +104,11 @@ SDK.prototype.on = function(eventName, callback) {
  * @param {string} eventName - the name of the event.
  * @param {Function} callback - the callback function to execute once the event is fired.
  */
-SDK.prototype.off = function(eventName, callback = null) {
+NFTTraderSDK.prototype.off = function(eventName, callback = null) {
     const event = this.eventsCollectorCallbacks.find((eventItem) => {
         return eventItem.name === eventName
     })
-    console.log(this.eventsCollectorCallbacks)
+    
     if (!event)
         throw new Error('event not supported.')
 
@@ -123,8 +123,6 @@ SDK.prototype.off = function(eventName, callback = null) {
     } else {
         event.callbacks = []
     }
-
-    console.log(this.eventsCollectorCallbacks)
 }
 
 /**
@@ -133,7 +131,7 @@ SDK.prototype.off = function(eventName, callback = null) {
  * @param {string} eventName - the name of the event.
  * @param {Object} params - the params to give to the callback function
  */
-SDK.prototype.__emit = function(eventName, params = {}) {
+NFTTraderSDK.prototype.__emit = function(eventName, params = {}) {
     const event = this.eventsCollectorCallbacks.find((eventItem) => {
         return eventItem.name === eventName
     })
@@ -151,9 +149,9 @@ SDK.prototype.__emit = function(eventName, params = {}) {
  *
  * @param {number} blocksNumberConfirmationRequired - the number of the mined blocks to wait for considering a transaction valid.
  */
-SDK.prototype.setBlocksNumberConfirmationRequired = function(blocksNumberConfirmationRequired = 0) {
-    if (blocksNumberConfirmationRequired < 0)
-        throw new Error('blocksNumberConfirmationRequired cannot be lower than zero.')
+NFTTraderSDK.prototype.setBlocksNumberConfirmationRequired = function(blocksNumberConfirmationRequired) {
+    if (blocksNumberConfirmationRequired < 1)
+        throw new Error('blocksNumberConfirmationRequired cannot be lower than one.')
     this.blocksNumberConfirmationRequired = blocksNumberConfirmationRequired
 }
 
@@ -171,7 +169,7 @@ SDK.prototype.setBlocksNumberConfirmationRequired = function(blocksNumberConfirm
  * @param {number} gasLimit - the gas limit of the transaction
  * @param {string} gasPrice - the gas price of the transaction
  */
-SDK.prototype.createSwap = async function({ethMaker, taker, ethTaker, swapEnd = 0, assetsMaker = [], assetsTaker = [], referralAddress = '0x0000000000000000000000000000000000000000'}, gasLimit = 2000000, gasPrice = null) {
+NFTTraderSDK.prototype.createSwap = async function({ethMaker, taker, ethTaker, swapEnd = 0, assetsMaker = [], assetsTaker = [], referralAddress = '0x0000000000000000000000000000000000000000'}, gasLimit = 2000000, gasPrice = null) {
     if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
         throw new Error('you cannot create a swap when you\'re in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction.')
     if(swapEnd < 0)
@@ -219,6 +217,7 @@ SDK.prototype.createSwap = async function({ethMaker, taker, ethTaker, swapEnd = 
         fee = flagFlatFee ? flatFee.toNumber() : 0
 
         const {TRADESQUAD, PARTNERSQUAD} = await this.getReferenceAddress()
+        
         const contractTradeSquad = new ethers.Contract(TRADESQUAD, erc721Abi, this.provider)
         const contractPartnerSquad = new ethers.Contract(PARTNERSQUAD, erc721Abi, this.provider)
         
@@ -237,39 +236,25 @@ SDK.prototype.createSwap = async function({ethMaker, taker, ethTaker, swapEnd = 
     gasLimit && (txOverrides['gasLimit'] = gasLimit)
     gasPrice && (txOverrides['gasPrice'] = gasPrice)
 
-    if (this.isJsonRpcProvider) {
-        try {     
-                  
-            await this.contract.createSwapIntent(swapIntent, assetsMaker, assetsTaker, referralAddress, {...txOverrides}).then(async(tx) => {
-                this.__emit('createSwapTransactionCreated', {tx})
-                await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
-                    this.__emit('createSwapTransactionMined', {receipt})
-                }).catch((error) => {
-                    this.__emit('createSwapTransactionError', {error, typeError : 'waitError'})
-                })
-            }).catch((error) => {
-                this.__emit('createSwapTransactionError', {error, typeError : 'createSwapIntentError'})
-            })
-        } catch (error) {
-            throw new Error(error)
-        }
-    } else if (this.isWeb3Provider) {
+    let signerTx
+    let contract = this.contract
+
+    if (this.isWeb3Provider) {
+        signerTx = this.provider.getSigner(addressMaker)
+        contract = this.contract.connect(signerTx)
+    }
+
+    try {       
+        let tx = await contract.createSwapIntent(swapIntent, assetsMaker, assetsTaker, referralAddress, {...txOverrides})
+        this.__emit('createSwapTransactionCreated', {tx})
         try {
-            const signer = this.provider.getSigner(addressMaker)
-            const contract = this.contract.connect(signer)
-            await contract.createSwapIntent(swapIntent, assetsMaker, assetsTaker, referralAddress, {...txOverrides}).then(async(tx) => {
-                this.__emit('createSwapTransactionCreated', {tx})
-                await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
-                    this.__emit('createSwapTransactionMined', {receipt})
-                }).catch((error) => {
-                    this.__emit('createSwapTransactionError', {error, typeError : 'waitError'})
-                })
-            }).catch((error) => {
-                this.__emit('createSwapTransactionError', {error, typeError : 'createSwapIntentError'})
-            })
+            let receipt = await tx.wait(this.blocksNumberConfirmationRequired)
+            this.__emit('createSwapTransactionMined', {receipt})
         } catch (error) {
-            throw new Error(error)
+            this.__emit('createSwapTransactionError', {error, typeError : 'waitError'})
         }
+    } catch (error) {
+        this.__emit('createSwapTransactionError', {error, typeError : 'createSwapIntentError'})
     }
 }
 
@@ -285,7 +270,7 @@ SDK.prototype.createSwap = async function({ethMaker, taker, ethTaker, swapEnd = 
  * @param {number} gasLimit - the gas limit of the transaction
  * @param {string} gasPrice - the gas price of the transaction
  */
-SDK.prototype.closeSwap = async function({maker, swapId, referralAddress = '0x0000000000000000000000000000000000000000'}, gasLimit = 2000000, gasPrice = null) {
+NFTTraderSDK.prototype.closeSwap = async function({maker, swapId, referralAddress = '0x0000000000000000000000000000000000000000'}, gasLimit = 2000000, gasPrice = null) {
     if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
         throw new Error('you cannot close a swap when you\'re in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction.')
 
@@ -309,39 +294,28 @@ SDK.prototype.closeSwap = async function({maker, swapId, referralAddress = '0x00
 
         if (balanceTradeSquad.toNumber() > 0 || balancePartnerSquad.toNumber() > 0)
             hasSquad = true
+
+        let senderTx
+        let signerTx
+        let contract = this.contract
+    
+        if (this.isWeb3Provider) {
+            senderTx = (await this.provider.listAccounts())[0]
+            signerTx = this.provider.getSigner(senderTx)
+            contract = this.contract.connect(signerTx)
+        }
         
-        if (this.isJsonRpcProvider) {
+        try {
+            let tx = await contract.closeSwapIntent(maker, swapId, referralAddress, {...txOverrides})
+            this.__emit('closeSwapTransactionCreated', {tx})
             try {
-                await this.contract.closeSwapIntent(maker, swapId, referralAddress, {...txOverrides}).then(async(tx) => {
-                    this.__emit('closeSwapTransactionCreated', {tx})
-                    await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
-                        this.__emit('closeSwapTransactionMined', {receipt})
-                    }).catch((error) => {
-                        this.__emit('closeSwapTransactionError', {error, typeError : 'waitError'})
-                    })
-                }).catch((error) => {
-                    this.__emit('closeSwapTransactionError', {error, typeError : 'closeSwapIntentError'})
-                })
+                let receipt = await tx.wait(this.blocksNumberConfirmationRequired)
+                this.__emit('closeSwapTransactionMined', {receipt})
             } catch (error) {
-                throw new Error(error)
+                this.__emit('closeSwapTransactionError', {error, typeError : 'waitError'})
             }
-        } else if (this.isWeb3Provider) {
-            try {
-                const signer = (await this.provider.listAccounts())[0]
-                const contract = this.contract.connect(signer)
-                await contract.closeSwapIntent(maker, swapId, referralAddress, {...txOverrides}).then(async(tx) => {
-                    this.__emit('closeSwapTransactionCreated', {tx})
-                    await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
-                        this.__emit('closeSwapTransactionMined', {receipt})
-                    }).catch((error) => {
-                        this.__emit('closeSwapTransactionError', {error, typeError : 'waitError'})
-                    })
-                }).catch((error) => {
-                    this.__emit('closeSwapTransactionError', {error, typeError : 'closeSwapIntentError'})
-                })
-            } catch (error) {
-                throw new Error(error)
-            }
+        } catch (error) {
+            this.__emit('closeSwapTransactionError', {error, typeError : 'closeSwapIntentError'})
         }
     } catch (error) {
         throw new Error(error)
@@ -355,7 +329,7 @@ SDK.prototype.closeSwap = async function({maker, swapId, referralAddress = '0x00
  * @param {number} gasLimit - the gas limit of the transaction
  * @param {string} gasPrice - the gas price of the transaction
  */
-SDK.prototype.cancelSwap = async function(swapId, gasLimit = 2000000, gasPrice = null) {
+NFTTraderSDK.prototype.cancelSwap = async function(swapId, gasLimit = 2000000, gasPrice = null) {
     if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
         throw new Error('you cannot cancel a swap when you\'re in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction.')
 
@@ -363,38 +337,27 @@ SDK.prototype.cancelSwap = async function(swapId, gasLimit = 2000000, gasPrice =
     gasLimit && (txOverrides['gasLimit'] = gasLimit)
     gasPrice && (txOverrides['gasPrice'] = gasPrice)
 
-    if (this.isJsonRpcProvider) {
+    let senderTx
+    let signerTx
+    let contract = this.contract
+
+    if (this.isWeb3Provider) {
+        senderTx = (await this.provider.listAccounts())[0]
+        signerTx = this.provider.getSigner(senderTx)
+        contract = this.contract.connect(signerTx)
+    }
+
+    try {
+        let tx = await contract.cancelSwapIntent(swapId, {...txOverrides})
+        this.__emit('cancelSwapTransactionCreated', {tx})
         try {
-            await this.contract.cancelSwapIntent(swapId, {...txOverrides}).then(async(tx) => {
-                this.__emit('cancelSwapTransactionCreated', {tx})
-                await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
-                    this.__emit('cancelSwapTransactionMined', {receipt})
-                }).catch((error) => {
-                    this.__emit('cancelSwapTransactionError', {error, typeError : 'waitError'})
-                })
-            }).catch((error) => {
-                this.__emit('cancelSwapTransactionError', {error, typeError : 'cancelSwapIntentError'})
-            })
+            let receipt = await tx.wait(this.blocksNumberConfirmationRequired)
+            this.__emit('cancelSwapTransactionMined', {receipt})
         } catch (error) {
-            throw new Error(error)
+            this.__emit('cancelSwapTransactionError', {error, typeError : 'waitError'})
         }
-    } else if (this.isWeb3Provider) {
-        try {
-            const signer = (await this.provider.listAccounts())[0]
-            const contract = this.contract.connect(signer)
-            await contract.cancelSwapIntent(swapId, {...txOverrides}).then(async(tx) => {
-                this.__emit('cancelSwapTransactionCreated', {tx})
-                await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
-                    this.__emit('cancelSwapTransactionMined', {receipt})
-                }).catch((error) => {
-                    this.__emit('cancelSwapTransactionError', {error, typeError : 'waitError'})
-                })
-            }).catch((error) => {
-                this.__emit('cancelSwapTransactionError', {error, typeError : 'cancelSwapIntentError'})
-            })
-        } catch (error) {
-            throw new Error(error)
-        }
+    } catch (error) {
+        this.__emit('cancelSwapTransactionError', {error, typeError : 'cancelSwapIntentError'})
     }
 }
 
@@ -406,7 +369,7 @@ SDK.prototype.cancelSwap = async function(swapId, gasLimit = 2000000, gasPrice =
  * @param {number} gasLimit - the gas limit of the transaction
  * @param {string} gasPrice - the gas price of the transaction
  */
-SDK.prototype.editTaker = async function(swapId, addressTaker, gasLimit = 2000000, gasPrice = null) {
+NFTTraderSDK.prototype.editTaker = async function(swapId, addressTaker, gasLimit = 2000000, gasPrice = null) {
     if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
         throw new Error('you cannot edit the taker of a swap when you\'re in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction.')
 
@@ -414,38 +377,27 @@ SDK.prototype.editTaker = async function(swapId, addressTaker, gasLimit = 200000
     gasLimit && (txOverrides['gasLimit'] = gasLimit)
     gasPrice && (txOverrides['gasPrice'] = gasPrice)
 
-    if (this.isJsonRpcProvider) {
+    let senderTx
+    let signerTx
+    let contract = this.contract
+
+    if (this.isWeb3Provider) {
+        senderTx = (await this.provider.listAccounts())[0]
+        signerTx = this.provider.getSigner(senderTx)
+        contract = this.contract.connect(signerTx)
+    }
+
+    try {
+        let tx = await contract.editCounterPart(swapId, addressTaker, {...txOverrides})
+        this.__emit('editTakerTransactionCreated', {tx})
         try {
-            await this.contract.editCounterPart(swapId, addressTaker, {...txOverrides}).then(async(tx) => {
-                this.__emit('editTakerTransactionCreated', {tx})
-                await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
-                    this.__emit('editTakerTransactionMined', {receipt})
-                }).catch((error) => {
-                    this.__emit('editTakerTransactionError', {error, typeError : 'waitError'})
-                })
-            }).catch((error) => {
-                this.__emit('editTakerTransactionError', {error, typeError : 'editCounterpartError'})
-            })
+            let tx = await tx.wait(this.blocksNumberConfirmationRequired)
+            this.__emit('editTakerTransactionMined', {receipt})
         } catch (error) {
-            throw new Error(error)
+            this.__emit('editTakerTransactionError', {error, typeError : 'waitError'})
         }
-    } else if (this.isWeb3Provider) {
-        try {
-            const signer = (await this.provider.listAccounts())[0]
-            const contract = this.contract.connect(signer)
-            await contract.editCounterPart(swapId, addressTaker, {...txOverrides}).then(async(tx) => {
-                this.__emit('editTakerTransactionCreated', {tx})
-                await tx.wait(this.blocksNumberConfirmationRequired).then((receipt) => {
-                    this.__emit('editTakerTransactionMined', {receipt})
-                }).catch((error) => {
-                    this.__emit('editTakerTransactionError', {error, typeError : 'waitError'})
-                })
-            }).catch((error) => {
-                this.__emit('editTakerTransactionError', {error, typeError : 'editCounterpartError'})
-            })
-        } catch (error) {
-            throw new Error(error)
-        }
+    } catch (error) {
+        this.__emit('editTakerTransactionError', {error, typeError : 'editCounterpartError'})
     }
 }
 
@@ -455,7 +407,7 @@ SDK.prototype.editTaker = async function(swapId, addressTaker, gasLimit = 200000
  * @param {string} maker - the swap creator address.
  * @param {number} swapId - the identifier of the swap.
  */
-SDK.prototype.getSwapDetails = async function(maker, swapId) {
+NFTTraderSDK.prototype.getSwapDetails = async function(maker, swapId) {
     try {
         return ({ id, addressMaker, discountMaker, valueMaker, flatFeeMaker, addressTaker, discountTaker, valueTaker, flatFeeTaker, swapStart, swapEnd, flagFlatFee, flagRoyalties, status, royaltiesMaker, royaltiesTaker } = (await this.contract.getSwapIntentByAddress(maker, swapId)))
     } catch (error) {
@@ -468,7 +420,7 @@ SDK.prototype.getSwapDetails = async function(maker, swapId) {
  * 
  * @param {number} swapId - the identifier of the swap.
  */
-SDK.prototype.getSwapAssets = async function(swapId) {
+NFTTraderSDK.prototype.getSwapAssets = async function(swapId) {
     try {
         const swapStructMakerSize = await this.contract.getSwapStructSize(swapId, true)
         const swapStructTakerSize = await this.contract.getSwapStructSize(swapId, false)
@@ -497,7 +449,7 @@ SDK.prototype.getSwapAssets = async function(swapId) {
  * 
  * @param {string} erc20Address - the ERC20 token address
  */
-SDK.prototype.getERC20WhiteList = async function(erc20Address) {
+NFTTraderSDK.prototype.isERC20WhiteListed = async function(erc20Address) {
     try {
         return (await this.contract.getERC20WhiteList(erc20Address))
     } catch (error) {
@@ -510,7 +462,7 @@ SDK.prototype.getERC20WhiteList = async function(erc20Address) {
  * 
  * @param {string} assetAddress - the ERC721/ERC1155 token address
  */
-SDK.prototype.getNFTBlacklist = async function(assetAddress) {
+NFTTraderSDK.prototype.isNFTBlacklisted = async function(assetAddress) {
     try {
         return (await this.contract.getNFTBlacklist(assetAddress))
     } catch (error) {
@@ -521,7 +473,7 @@ SDK.prototype.getNFTBlacklist = async function(assetAddress) {
 /**
  * Returns the payment struct configuration of the smart contract.
  */
-SDK.prototype.getPayment = async function() {
+NFTTraderSDK.prototype.getPayment = async function() {
     try {
         return ({ flagFlatFee, flagRoyalties, flatFee, bps, scalePercent } = (await this.contract.payment()))
     } catch (error) {
@@ -532,7 +484,7 @@ SDK.prototype.getPayment = async function() {
 /**
  * Returns the reference address struct configuration of the smart contract.
  */
-SDK.prototype.getReferenceAddress = async function() {
+NFTTraderSDK.prototype.getReferenceAddress = async function() {
     try {
         return ({ ROYALTYENGINEADDRESS, TRADESQUAD, PARTNERSQUAD, VAULT } = (await this.contract.referenceAddress()))
     } catch (error) {
@@ -541,11 +493,29 @@ SDK.prototype.getReferenceAddress = async function() {
 }
 
 /**
- * SDK.AssetsArray class. This class represents an array of assets
+ * Returns the reference address struct configuration of the smart contract.
+ */
+NFTTraderSDK.prototype.isBannedAddress = async function(address) {
+    try {
+        return await this.contract.bannedAddress(address)
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
+/**
+ * Returns the instance of ethers used internally to this module
+ */
+NFTTraderSDK.prototype.getEthersJSInstance = function() {
+   return ethers 
+}
+
+/**
+ * NFTTraderSDK.AssetsArray class. This class represents an array of assets
  * 
  * @class SDK.AssetsArray
  */
-SDK.prototype.AssetsArray = function() {
+NFTTraderSDK.prototype.AssetsArray = function() {
     this.assetsArray = []
     this.tokenConstants = {
         ERC20 : 0,
@@ -560,7 +530,7 @@ SDK.prototype.AssetsArray = function() {
  * @param {string} address - the ERC20 token address.
  * @param {number} tokenAmount - the amount of the token used.
  */
-SDK.prototype.AssetsArray.prototype.addERC20Asset = function(address, tokenAmount) {
+NFTTraderSDK.prototype.AssetsArray.prototype.addERC20Asset = function(address, tokenAmount) {
     if (isNaN(tokenAmount))
         throw new Error('tokenAmount must be a numeric value.')
     this.assetsArray.push([address, this.tokenConstants.ERC20, [], [(ethers.BigNumber.from(tokenAmount.toString())).toString()], [0], []])
@@ -572,7 +542,7 @@ SDK.prototype.AssetsArray.prototype.addERC20Asset = function(address, tokenAmoun
  * @param {string} address - the ERC721 token address.
  * @param {Array} tokenIds - the ids of the ERC721 token used.
  */
-SDK.prototype.AssetsArray.prototype.addERC721Asset = function(address, tokenIds = []) {
+NFTTraderSDK.prototype.AssetsArray.prototype.addERC721Asset = function(address, tokenIds = []) {
     if (!(tokenIds instanceof Array))
         throw new Error('tokenIds must be an array.')
     if (tokenIds.length === 0)
@@ -588,7 +558,7 @@ SDK.prototype.AssetsArray.prototype.addERC721Asset = function(address, tokenIds 
  * @param {Array} tokenAmounts - the amounts of the ERC1155 token used.
  * 
  */
-SDK.prototype.AssetsArray.prototype.addERC1155Asset = function(address, tokenIds = [], tokenAmounts = []) {
+NFTTraderSDK.prototype.AssetsArray.prototype.addERC1155Asset = function(address, tokenIds = [], tokenAmounts = []) {
     if (!(tokenIds instanceof Array))
         throw new Error('tokenIds must be an array.')
     if (!(tokenAmounts instanceof Array))
@@ -606,23 +576,23 @@ SDK.prototype.AssetsArray.prototype.addERC1155Asset = function(address, tokenIds
 /**
  * Clear the assets Array
  */
-SDK.prototype.AssetsArray.prototype.clearAssetsArray = function() {
+NFTTraderSDK.prototype.AssetsArray.prototype.clearAssetsArray = function() {
     this.assetsArray = []
 }
 
 /**
  * Returns the assets Array
  */
-SDK.prototype.AssetsArray.prototype.getAssetsArray = function() {
+NFTTraderSDK.prototype.AssetsArray.prototype.getAssetsArray = function() {
     return this.assetsArray
 }
 
 /**
- * SDK.WebSocketProvider class. This class contains the WebSocket Provider objects to listen the events emitted by the smart contract.
+ * NFTTraderSDK.WebSocketProvider class. This class contains the WebSocket Provider objects to listen the events emitted by the smart contract.
  * 
  * @class SDK.WebSocketProvider
  */
-SDK.prototype.WebSocketProvider = function({wssUrl, network = null}) {
+NFTTraderSDK.prototype.WebSocketProvider = function({wssUrl, network = null}) {
     if (typeof wssUrl !== 'string')
         throw new Error('wssUrl must be a string.')
     
@@ -647,7 +617,7 @@ SDK.prototype.WebSocketProvider = function({wssUrl, network = null}) {
  * @param {number} topicObject.time - the creation time of the swap.
  * @param {number} topicObject.status - the status of the swap.
  */
-SDK.prototype.WebSocketProvider.prototype.onSwapEvent = function(callback, {creator = null, time = null, status = null}) {
+NFTTraderSDK.prototype.WebSocketProvider.prototype.onSwapEvent = function(callback, {creator = null, time = null, status = null}) {
     if (callback === null || typeof callback === 'undefined')
         throw new Error('callback must be provided')
     if (typeof callback !== 'function')
@@ -677,7 +647,7 @@ SDK.prototype.WebSocketProvider.prototype.onSwapEvent = function(callback, {crea
  * @param {string} topicObject.counterpart - the address of the counterpart.
  * 
  */
-SDK.prototype.WebSocketProvider.prototype.onCounterpartEvent = function(callback, {swapId = null, counterpart = null}) {
+NFTTraderSDK.prototype.WebSocketProvider.prototype.onCounterpartEvent = function(callback, {swapId = null, counterpart = null}) {
     if (callback === null || typeof callback === 'undefined')
         throw new Error('callback must be provided')
     if (typeof callback !== 'function')
@@ -705,7 +675,7 @@ SDK.prototype.WebSocketProvider.prototype.onCounterpartEvent = function(callback
  * @param {string} topicObject.payer - the address of the payer.
  * 
  */
-SDK.prototype.WebSocketProvider.prototype.onPaymentReceived = function(callback, {payer = null}) {
+NFTTraderSDK.prototype.WebSocketProvider.prototype.onPaymentReceived = function(callback, {payer = null}) {
     if (callback === null || typeof callback === 'undefined')
         throw new Error('callback must be provided')
     if (typeof callback !== 'function')
@@ -724,4 +694,4 @@ SDK.prototype.WebSocketProvider.prototype.onPaymentReceived = function(callback,
     })
 }
 
-module.exports = SDK
+module.exports = NFTTraderSDK

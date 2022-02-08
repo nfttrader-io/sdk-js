@@ -5,9 +5,78 @@
 <body>
   <script src='./nfttrader-sdk.js'></script>
   <script>
-    const {swap, vault} = nfttrader;
-    console.log(swap,vault)
-    
+    const sleep = function (milliseconds) {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve()
+            }, milliseconds)
+        })
+    }
+    window.addEventListener('load', function () {
+        if (window.ethereum) {
+            const ADDRESS_MAKER = ''
+            const SWAP_ID = 1
+            const ADDRESS_TAKER = ''
+
+            const sdk = new NFTTraderSDK({web3Provider : window.ethereum, network : 'RINKEBY'})
+
+            try {
+                (async () => {
+                    const ethers = sdk.getEthersJSInstance()
+                    provider = new ethers.providers.Web3Provider(window.ethereum)
+                    await provider.send('eth_requestAccounts', [])
+
+                    console.log('READ FUNCTIONS')
+
+                    const {ROYALTYENGINEADDRESS, TRADESQUAD, PARTNERSQUAD, VAULT} = await sdk.getReferenceAddress()
+                    const payment = await sdk.getPayment()
+                    const bannedAddress = await sdk.isBannedAddress('0xD67df04F318B1675416482F0029c55a9fF259D11')
+                    const isWhitelisted = await sdk.isERC20WhiteListed('0xD67df04F318B1675416482F0029c55a9fF259D11')
+                    const isBlacklisted = await sdk.isNFTBlacklisted('0xD67df04F318B1675416482F0029c55a9fF259D11')
+                    const {id, addressMaker, discountMaker, valueMaker, flatFeeMaker, addressTaker, discountTaker, valueTaker, flatFeeTaker, swapStart, swapEnd, flagFlatFee, flagRoyalties, status, royaltiesMaker, royaltiesTaker} = await sdk.getSwapDetails(ADDRESS_MAKER, Number(SWAP_ID))
+                    const {assetsMaker, assetsTaker} = await sdk.getSwapAssets(Number(SWAP_ID))
+            
+                    console.log({ROYALTYENGINEADDRESS, TRADESQUAD, PARTNERSQUAD, VAULT})
+                    console.log(payment)
+                    console.log(bannedAddress)
+                    console.log(isWhitelisted)
+                    console.log(isBlacklisted)
+                    console.log({id, addressMaker, discountMaker, valueMaker, flatFeeMaker, addressTaker, discountTaker, valueTaker, flatFeeTaker, swapStart, swapEnd, flagFlatFee, flagRoyalties, status, royaltiesMaker, royaltiesTaker})
+                    console.log({assetsMaker, assetsTaker})
+
+                    console.log('WRITE FUNCTIONS')
+
+                    sdk.setBlocksNumberConfirmationRequired(1)
+
+                    sdk.on('createSwapTransactionCreated', () => {
+                        console.log('create swap tx created')
+                    })
+                    sdk.on('createSwapTransactionMined', async (param) => {
+                        const events = param.receipt.events
+                        const event = events[0]
+                        const {_swapId} = event.args
+                        
+                        sdk.on('cancelSwapTransactionMined', function (param) {
+                            console.log('cancel swap fired. The swap was cancelled.')
+                        })
+                        
+                        await sdk.editTaker(_swapId.toNumber(), '0xc38C7EfA39e009564342634CC33ddbe766b7aAdE')
+                        await sleep(1000)
+                        await sdk.cancelSwap(_swapId.toNumber())
+                    })
+                    
+                    await sdk.createSwap({
+                        ethMaker : 10000000000000000, 
+                        taker : ADDRESS_TAKER, 
+                        ethTaker : 10000000000000000, 
+                        swapEnd : 0
+                    })
+                })()
+            } catch (error) {
+                console.log(error)
+            }
+        }
+    })
   </script>
 </body>
 </html>

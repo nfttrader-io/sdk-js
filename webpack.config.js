@@ -6,7 +6,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, './dist'),
     filename: 'nfttrader-sdk.js',
-    library: 'nfttrader',
+    library: 'NFTTraderSDK',
     libraryTarget: 'umd',
     globalObject: 'this',
   },

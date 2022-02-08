@@ -1,1 +1,1 @@
-const SDK = require('./nfttrader-sdk.js')
+const NFTTraderSDK = require('./nfttrader-sdk.js')

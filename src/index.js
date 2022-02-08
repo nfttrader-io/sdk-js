@@ -1,3 +1,3 @@
-const SDK = require('./sdk')
+const NFTTraderSDK = require('./sdk')
 
-module.exports = SDK
+module.exports = NFTTraderSDK
