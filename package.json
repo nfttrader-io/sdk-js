@@ -1,5 +1,5 @@
 {
-  "name": "sdk-js",
+  "name": "@nfttrader/sdk-js",
   "version": "1.0.0",
   "description": "The NFT Trader official javascript SDK.",
   "main": "dist/nfttrader-sdk.js",
