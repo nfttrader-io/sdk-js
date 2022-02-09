@@ -595,7 +595,7 @@ Set the blocks confirmation number used to consider a transaction mined. Example
 
 ```js
 
-sdk.setBlocksNumberConfirmationRequired(10)
+sdk.setBlocksNumberConfirmationRequired(10) //the confirmation number cannot be lower than one.
 
 sdk.on('createSwapTransactionMined', ({tx}) => {
   //this event will be fired after 10 blocks will be mined on the blockchain
