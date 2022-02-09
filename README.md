@@ -151,22 +151,79 @@ Once you have initialized the ```NFTTraderSDK``` object you will be ready to per
 
 The SDK will provide you the following list of methods:
 
-- **createSwap(config[, gasLimit[, gasPrice]])**
-- **closeSwap(config[, gasLimit[, gasPrice]])**
-- **cancelSwap(swapId[, gasLimit[, gasPrice]])**
-- **editTaker(swapId, addressTaker[, gasLimit[, gasPrice]])**
-- **on(eventName, callbackFn)**
-- **off(eventName[, callbackFn])**
-- **setBlocksNumberConfirmationRequired(blocksNumberConfirmationRequired)**
-- **getSwapDetails(maker, swapId)**
-- **getSwapAssets(swapId)**
-- **isERC20WhiteListed(erc20Address)**
-- **isNFTBlacklisted(assetAddress)**
-- **getPayment()**
-- **getReferenceAddress()**
-- **isBannedAddress(address)**
-- **getEthersJSInstance()**
+###### - **createSwap(config[, gasLimit[, gasPrice]]) : Promise(void)**
+###### - **closeSwap(config[, gasLimit[, gasPrice]]) : Promise(void)**
+###### - **cancelSwap(swapId[, gasLimit[, gasPrice]]) : Promise(void)**
+###### - **editTaker(swapId, addressTaker[, gasLimit[, gasPrice]]) : Promise(void)**
+###### - **on(eventName, callbackFn) : void**
+###### - **off(eventName[, callbackFn]) : void**
+###### - **setBlocksNumberConfirmationRequired(blocksNumberConfirmationRequired) : void**
+###### - **getSwapDetails(maker, swapId) : Promise(Object)**
+###### - **getSwapAssets(swapId) : Promise(Object)**
+###### - **isERC20WhiteListed(erc20Address) : Promise(boolean)**
+###### - **isNFTBlacklisted(assetAddress) : Promise(boolean)**
+###### - **getPayment() : Promise(Object)**
+###### - **getReferenceAddress() : Promise(Object)**
+###### - **isBannedAddress(address) : Promise(boolean)**
+###### - **getEthersJSInstance() : Ethers**
 
 ## Create a swap
 
-In order to create a swap you can use the following method
+In order to create a swap you can use the following method:
+
+```js
+const sdk = new NFTTraderSDK(....) //create the instance
+
+await sdk.createSwap({
+    ethMaker : 100000000000, //amount in wei placed by the creator of the swap (mandatory)
+    taker : '0x87B96FE67F93bc795B7bb6957A4812DA1ec5e4Cf', //address of the taker (counterparty) of the swap. If you provide the value '0x0000000000000000000000000000000000000000' the swap can be closed by everyone (mandatory)
+    ethTaker : 100000000000, //amount in wei placed by the taker of the swap (mandatory)
+    swapEnd : 0, //number of days of validity of the swap. If not specified the value will be zero. Zero value means no time limit. (optional)
+    assetsMaker : [], //Array of ERC721/1155/20 tokens placed by the creator of the swap. The default value is an empty array. The SDK provides utility methods to build this array. (optional)
+    assetsTaker : [], //Array of ERC721/1155/20 tokens placed by the taker (counterparty) of the swap. The default value is an empty array. The SDK provides utility methods to build this array. (optional)
+    referralAddress : '0x0000000000000000000000000000000000000000' //Can be an address of an account or a smart contract. Referral address utility will be explained in the next sections (optional)
+  }, 
+  gasLimit, //a numeric value expressed in wei that indicates the gas limit of the transaction. The default value is 2000000 (optional)
+  gasPrice //a string value expressed in wei that indicates the gas price of the transaction. The default value is null (optional)
+)
+```
+
+This method can emits 3 different types of event.
+
+- [```createSwapTransactionCreated```](#createswaptransactioncreated)
+- [```createSwapTransactionMined```](#createswaptransactionmined)
+- [```createSwapTransactionError```](#createswaptransactionerror)
+
+##### createSwapTransactionCreated
+
+It's emitted when the transaction is created and it is waiting to be mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+
+```js
+sdk.on('createSwapTransactionCreated', ({tx}) => {
+  //make something
+  //tx object is an instance of the class TransactionResponse. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionResponse]
+})
+```
+
+##### createSwapTransactionMined
+
+It's emitted when the transaction is mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+
+```js
+sdk.on('createSwapTransactionMined', ({receipt}) => {
+  //make something
+  //receipt object is an instance of the class TransactionReceipt. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionReceipt]
+})
+```
+
+##### createSwapTransactionError
+
+It's emitted when an error occurs during the creation/mining of transaction process. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+
+
+```js
+sdk.on('createSwapTransactionError', ({error, typeError}) => {
+  //make something
+  //typeError value can be: createSwapIntentError or waitError. The first one means the error is occured during the process creation of the transaction. The second one means the error is occured during the mining process of the transaction.
+})
+```
