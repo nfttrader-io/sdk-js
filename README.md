@@ -576,3 +576,29 @@ Return ```true``` or ```false``` if the msg.sender is banned by the NFT Trader S
 ```js
 const isBanned = await sdk.isNFTBlacklisted('0x87B96FE67F93bc795B7bb6957A4812DA1ec5e4Cf') //a random address account
 ```
+
+## Other methods
+
+The SDK provides you other useful methods.
+
+##### getEthersJSInstance() : Ethers
+
+Return an Ether object instance you can use for interacting with the blockchain. Example:
+
+```js
+const ethers = sdk.getEthersJSInstance()
+```
+
+##### setBlocksNumberConfirmationRequired(blocksNumberConfirmationRequired) : void
+
+Set the blocks confirmation number used to consider a transaction mined. Example:
+
+```js
+
+sdk.setBlocksNumberConfirmationRequired(10)
+
+sdk.on('createSwapTransactionMined', ({tx}) => {
+  //this event will be fired after 10 blocks will be mined on the blockchain
+})
+
+```
