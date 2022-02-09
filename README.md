@@ -489,9 +489,7 @@ sdk.off('createSwapTransactionCreated', async ({tx}) => {
 
 The SDK provides you several methods to get information from the NFT Trader Smart Contract. Here a list of read methods you can use.
 
-```js
-getSwapDetails(maker, swapId) : Promise(Object)
-```
+##### getSwapDetails(maker, swapId) : Promise(Object)
 
 Return the swap major details. Example:
 
@@ -516,9 +514,7 @@ const {
 } = await sdk.getSwapDetails(maker, swapId)
 ```
 
-```js
-getSwapAssets(swapId) : Promise(Object)
-```
+##### getSwapAssets(swapId) : Promise(Object)
 
 Return the swap assets array details. The structure of these arrays will be explained in the next sections. Example:
 
@@ -530,9 +526,7 @@ const {
 } = await sdk.getSwapAssets(swapId)
 ```
 
-```js
-isERC20WhiteListed(erc20Address) : Promise(boolean)
-```
+##### isERC20WhiteListed(erc20Address) : Promise(boolean)
 
 Return ```true``` or ```false``` if the ERC20 token it is whitelisted by the NFT Trader Smart Contract. Example:
 
@@ -540,9 +534,7 @@ Return ```true``` or ```false``` if the ERC20 token it is whitelisted by the NFT
 const isWhitelisted = await sdk.isERC20WhiteListed('0xdac17f958d2ee523a2206206994597c13d831ec7') //Tether token
 ```
 
-```js
-isNFTBlacklisted(assetAddress) : Promise(boolean)
-```
+##### isNFTBlacklisted(assetAddress) : Promise(boolean)
 
 Return ```true``` or ```false``` if the ERC721/1155 token it is blacklisted by the NFT Trader Smart Contract. Example:
 
@@ -550,9 +542,7 @@ Return ```true``` or ```false``` if the ERC721/1155 token it is blacklisted by t
 const isBlacklisted = await sdk.isNFTBlacklisted('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d') //BAYC
 ```
 
-```js
-getPayment() : Promise(Object)
-```
+##### getPayment() : Promise(Object)
 
 Return an object representing the payment configuration of the NFT Trader Smart Contract. Example:
 
@@ -566,9 +556,7 @@ const { //this parameters are intended to be used internally by the smart contra
 } = await sdk.getPayment()
 ```
 
-```js
-getReferenceAddress() : Promise(Object)
-```
+##### getReferenceAddress() : Promise(Object)
 
 Return an object representing the reference address configuration of the NFT Trader Smart Contract. Example:
 
@@ -581,9 +569,7 @@ const { //this parameters are intended to be used internally by the smart contra
 } = await sdk.getReferenceAddress()
 ```
 
-```js
-isBannedAddress(address) : Promise(boolean)
-```
+##### isBannedAddress(address) : Promise(boolean)
 
 Return ```true``` or ```false``` if the msg.sender is banned by the NFT Trader Smart Contract. Example:
 
