@@ -13,8 +13,8 @@
     "type": "git",
     "url": "git+https://github.com/nfttrader-io/sdk-js.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["nfttrader", "sdk"],
+  "author": "Salad Labs Inc.",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/nfttrader-io/sdk-js/issues"
