@@ -114,7 +114,7 @@ If you are developing a backend platform you can initialize the ```NFTTraderSDK`
 ```js
 const sdk = new NFTTraderSDK({
   jsonRpcProvider : 'RPC_URL_PROVIDER', //example: infura 
-  network : 'NETWORK', //example: 'RINKEBY', 'MAINNET', 'KOVAN', 'POLYGON', etc. 
+  network : 'NETWORK', //example: 'MAINNET', 'RINKEBY', 'KOVAN', 'POLYGON', 'MUMBAI', 'GOERLI', 'ROPSTEN', 'XDAI'
   signer : {
     privateKey : '<PRIVATE_KEY_OF_A_WALLET_OR_ACCOUNT>'
   }, 
@@ -137,7 +137,7 @@ If you are developing a frontend application (SPA), a website or a plugin you ca
 window.addEventListener('load', async () => {
   const sdk = new NFTTraderSDK({
     web3Provider : window.ethereum,
-    network : 'NETWORK', //example: 'RINKEBY', 'MAINNET', 'KOVAN', 'POLYGON', etc. 
+    network : 'NETWORK', //example: 'MAINNET', 'RINKEBY', 'KOVAN', 'POLYGON', 'MUMBAI', 'GOERLI', 'ROPSTEN', 'XDAI'
   })
   
   const ethers = sdk.getEthersJSInstance()
