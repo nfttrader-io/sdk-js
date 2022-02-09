@@ -547,7 +547,7 @@ const isBlacklisted = await sdk.isNFTBlacklisted('0xbc4ca0eda7647a8ab7c2061c2e11
 Return an object representing the payment configuration of the NFT Trader Smart Contract. Example:
 
 ```js
-const { //this parameters are intended to be used internally by the smart contract. Contact the team if you want more information about it.
+const { //these parameters are intended to be used internally by the smart contract. Contact the team if you want more information about it.
   flagFlatFee, 
   flagRoyalties, 
   flatFee, 
@@ -561,7 +561,7 @@ const { //this parameters are intended to be used internally by the smart contra
 Return an object representing the reference address configuration of the NFT Trader Smart Contract. Example:
 
 ```js
-const { //this parameters are intended to be used internally by the smart contract. Contact the team if you want more information about it.
+const { //these parameters are intended to be used internally by the smart contract. Contact the team if you want more information about it.
   ROYALTYENGINEADDRESS, 
   TRADESQUAD, 
   PARTNERSQUAD, 
