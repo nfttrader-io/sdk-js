@@ -211,10 +211,16 @@ It's emitted when the transaction is mined. This event can be intercepted by the
 
 ```js
 sdk.on('createSwapTransactionMined', ({receipt}) => {
-  //make something
   //receipt object is an instance of the class TransactionReceipt. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionReceipt]
+  const events = param.receipt.events
+  const event = events[0]
+  const {_swapId} = event.args
+  //do whatever you want
 })
 ```
+
+Intercepting the ```createSwapTransactionMined``` event can be very important if you want to extract the ```swapId``` value. This parameter it's the unique identifier of the swap and it's needed by the ```closeSwap```, ```cancelSwap``` or ```editTaker``` methods.
+The alternative for tracking the ```swapId``` parameter could be listen the ```swapEvent``` directly on the blockchain.
 
 ##### createSwapTransactionError
 
@@ -227,3 +233,62 @@ sdk.on('createSwapTransactionError', ({error, typeError}) => {
   //typeError value can be: createSwapIntentError or waitError. The first one means the error is occured during the process creation of the transaction. The second one means the error is occured during the mining process of the transaction.
 })
 ```
+
+## Close a swap
+
+In order to close a swap you can use the following method:
+
+```js
+const sdk = new NFTTraderSDK(....) //create the instance
+
+await sdk.closeSwap({
+  maker : 'ADDRESS_OF_THE_MAKER', //address of the maker of the swap (mandatory)
+  swapId : 0, //unique identifier of the swap (mandatory) 
+  referralAddress : '0x0000000000000000000000000000000000000000' //Can be an address of an account or a smart contract. Referral address utility will be explained in the next sections (optional)
+  },
+  gasLimit, //a numeric value expressed in wei that indicates the gas limit of the transaction. The default value is 2000000 (optional)
+  gasPrice //a string value expressed in wei that indicates the gas price of the transaction. The default value is null (optional)
+)
+```
+
+This method can emits 3 different types of event.
+
+- [```closeSwapTransactionCreated```](#closeswaptransactioncreated)
+- [```closeSwapTransactionMined```](#closeswaptransactionmined)
+- [```closeSwapTransactionError```](#closeswaptransactionerror)
+
+##### closeSwapTransactionCreated
+
+It's emitted when the transaction is created and it is waiting to be mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+
+```js
+sdk.on('closeSwapTransactionCreated', ({tx}) => {
+  //make something
+  //tx object is an instance of the class TransactionResponse. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionResponse]
+})
+```
+
+##### closeSwapTransactionMined
+
+It's emitted when the transaction is mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+
+```js
+sdk.on('closeSwapTransactionMined', ({receipt}) => {
+  //make something
+  //receipt object is an instance of the class TransactionReceipt. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionReceipt]
+})
+```
+
+##### closeSwapTransactionError
+
+It's emitted when an error occurs during the creation/mining of transaction process. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+
+
+```js
+sdk.on('closeSwapTransactionError', ({error, typeError}) => {
+  //make something
+  //typeError value can be: closeSwapIntentError or waitError. The first one means the error is occured during the process creation of the transaction. The second one means the error is occured during the mining process of the transaction.
+})
+```
+
+
