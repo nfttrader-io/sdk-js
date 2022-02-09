@@ -594,11 +594,112 @@ const ethers = sdk.getEthersJSInstance()
 Set the blocks confirmation number used to consider a transaction mined. Example:
 
 ```js
-
 sdk.setBlocksNumberConfirmationRequired(10) //the confirmation number cannot be lower than one.
 
 sdk.on('createSwapTransactionMined', ({tx}) => {
   //this event will be fired after 10 blocks will be mined on the blockchain
 })
+```
 
+## Utilities
+
+The SDK provides you an utility class object for building the ```assetsMaker``` or the ```assetsTaker``` arrays useful for the ```createSwap``` method.
+In order to build these two kinds of arrays there is a utility class called ```AssetsArray```.
+
+To create an instance of ```AssetsArray``` object you can do in the following way:
+
+```js
+const sdk = new NFTTraderSDK(....)
+
+const assetsArray = new sdk.AssetsArray()
+```
+
+```AssetsArray``` class provide you the following methods:
+
+###### - **addERC20Asset(address, tokenAmount) : void**
+###### - **addERC721Asset(address, tokenIds) : void**
+###### - **addERC1155Asset(address, tokenIds, tokenAmounts) : void**
+###### - **clearAssetsArray() : void**
+###### - **getAssetsArray() : void**
+
+Let's see in the details what these methods provide.
+
+##### addERC20Asset(address, tokenAmount) : void
+
+Add an ERC20 token and the relative amount to the AssetsArray object. The token amount **must be formatted** in the right way before pass it to this method. The SDK will not perform any convertion based on the decimals of the token.
+Let's see an example of implementation.
+
+```js
+const sdk = new NFTTraderSDK(....)
+const assetsArray = new sdk.AssetsArray()
+
+assetsArray.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', 10000000000000000000) //the address of the token is DAI token. An ERC20 with 18 decimals. The amount passed as parameter is 10 DAI
+```
+
+##### addERC721Asset(address, tokenIds) : void
+
+Add an ERC721 token and the relative token ids to the AssetsArray object. ```tokenIds``` parameter must be an array with at least one element inside it.
+Let's see an example of implementation.
+
+```js
+const sdk = new NFTTraderSDK(....)
+const assetsArray = new sdk.AssetsArray()
+
+assetsArray.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', [1,3456]) //the address of the token is BAYC NFT. we're adding to the array of assets the token ids number 1 and 3456. 
+```
+
+##### addERC1155Asset(address, tokenIds, tokenAmounts) : void
+
+Add an ERC1155 token, the relative token ids and amounts to the AssetsArray object. ```tokenIds``` parameter must be an array with at least one element inside it. ```tokenAmounts``` must be an array with at least one element inside it. The size of ```tokenIds``` and ```tokenAmounts``` array must be equal.
+Let's see an example of implementation.
+
+```js
+const sdk = new NFTTraderSDK(....)
+const assetsArray = new sdk.AssetsArray()
+
+assetsArray.addERC1155Asset('0xedb61f74b0d09b2558f1eeb79b247c1f363ae452', [1,3456], [1,1]) //the address of the token is GUTTER CAT GANG NFT. we're adding to the array of assets the token ids number 1 and 3456. The amount related to the token number 1 and 3456 are both 1.
+```
+
+##### clearAssetsArray() : void
+
+Clear the assets array object. It erases everything you have putted before.
+Let's see an example of implementation.
+
+```js
+const sdk = new NFTTraderSDK(....)
+const assetsArray = new sdk.AssetsArray()
+
+assetsArray.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', 10000000000000000000)
+assetsArray.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', [1,3456])
+assetsArray.addERC1155Asset('0xedb61f74b0d09b2558f1eeb79b247c1f363ae452', [1,3456], [1,1])
+
+assetsArray.clearAssetsArray() //clear everything you've putted before in the AssetsArray instance
+```
+
+##### getAssetsArray() : void
+
+Return the assets array.
+Let's see an example of implementation.
+
+```js
+const sdk = new NFTTraderSDK(....)
+const assetsArrayMaker = new sdk.AssetsArray()
+const assetsArrayTaker = new sdk.AssetsArray()
+
+assetsArrayMaker.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', 10000000000000000000)
+assetsArrayMaker.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', [1,3456])
+assetsArrayMaker.addERC1155Asset('0xedb61f74b0d09b2558f1eeb79b247c1f363ae452', [1,3456], [1,1])
+
+assetsArrayTaker.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', 10000000000000000000)
+assetsArrayTaker.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', [230,12])
+
+const assetsMaker = assetsArrayMaker.getAssetsArray() //returns the array of assets for the maker
+const assetsTaker = assetsArrayTaker.getAssetsArray() //returns the array of assets for the taker
+
+await sdk.createSwap({
+  .
+  .
+  assetsMaker : assetsMaker,
+  assetsTaker : assetsTaker
+})
 ```
