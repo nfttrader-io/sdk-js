@@ -52,6 +52,7 @@ But the final target is very simple, once you will learn how to master the SDK, 
 
 - [How the swap works](#how-the-swap-works)
 - [Initialize the NFTTraderSDK object](#initialize-the-nfttradersdk-object)
+- [Instance methods](#instance-methods)
 - [Create a swap](#create-a-swap)
 - [Close a swap](#close-a-swap)
 - [Cancel a swap](#cancel-a-swap)
@@ -121,8 +122,9 @@ sdk.method2(...)
 ```
 
 Why i need to specify a private key? Because in a backend environment you haven't a wallet like Metamask or similar that can provide you a way to interact directly with the blockchain by sending a transaction to a smart contract. This is why you need to specify a private key, in order to be able to perform writing operation on the blockchain.
+Provide the ```privateKey``` parameter is not mandatory. If you specify the ```avoidPrivateKeySigner``` parameter to ```false```, you will be able to use the ```NFTTraderSDK``` object but only for performing reading operation on the smart contract.
 
-**IMPORTANT. WE NEVER STORE YOUR PRIVATE KEY. privateKey IS A READ-ONLY PARAMETER**
+**IMPORTANT. WE NEVER STORE YOUR PRIVATE KEY. privateKey IS A READ-ONLY PARAMETER.**
 
 If you are developing a frontend application (SPA), a website or a plugin you can initialize the ```NFTTraderSDK``` object in this way.
 
@@ -142,3 +144,29 @@ window.addEventListener('load', async () => {
   sdk.method2(...)
 })
 ```
+
+Once you have initialized the ```NFTTraderSDK``` object you will be ready to perform write or read operations on the NFT Trader Smart Contract.
+
+## Instance methods
+
+The SDK will provide you the following list of methods:
+
+- **createSwap(config[, gasLimit[, gasPrice]])**
+- **closeSwap(config[, gasLimit[, gasPrice]])**
+- **cancelSwap(swapId[, gasLimit[, gasPrice]])**
+- **editTaker(swapId, addressTaker[, gasLimit[, gasPrice]])**
+- **on(eventName, callbackFn)**
+- **off(eventName[, callbackFn])**
+- **setBlocksNumberConfirmationRequired(blocksNumberConfirmationRequired)**
+- **getSwapDetails(maker, swapId)**
+- **getSwapAssets(swapId)**
+- **isERC20WhiteListed(erc20Address)**
+- **isNFTBlacklisted(assetAddress)**
+- **getPayment()**
+- **getReferenceAddress()**
+- **isBannedAddress(address)**
+- **getEthersJSInstance()**
+
+## Create a swap
+
+In order to create a swap you can use the following method
