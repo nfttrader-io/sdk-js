@@ -291,4 +291,119 @@ sdk.on('closeSwapTransactionError', ({error, typeError}) => {
 })
 ```
 
+## Cancel a swap
+
+In order to cancel a swap you can use the following method:
+
+```js
+const sdk = new NFTTraderSDK(....) //create the instance
+
+await sdk.cancelSwap(
+  swapId, //unique identifier of the swap (mandatory) 
+  gasLimit, //a numeric value expressed in wei that indicates the gas limit of the transaction. The default value is 2000000 (optional)
+  gasPrice //a string value expressed in wei that indicates the gas price of the transaction. The default value is null (optional)
+)
+```
+
+This method can emits 3 different types of event.
+
+- [```cancelSwapTransactionCreated```](#cancelswaptransactioncreated)
+- [```cancelSwapTransactionMined```](#cancelswaptransactionmined)
+- [```cancelSwapTransactionError```](#cancelswaptransactionerror)
+
+##### cancelSwapTransactionCreated
+
+It's emitted when the transaction is created and it is waiting to be mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+
+```js
+sdk.on('cancelSwapTransactionCreated', ({tx}) => {
+  //make something
+  //tx object is an instance of the class TransactionResponse. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionResponse]
+})
+```
+
+##### cancelSwapTransactionMined
+
+It's emitted when the transaction is mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+
+```js
+sdk.on('cancelSwapTransactionMined', ({receipt}) => {
+  //make something
+  //receipt object is an instance of the class TransactionReceipt. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionReceipt]
+})
+```
+
+The alternative for tracking this event could be listen the ```swapEvent``` directly on the blockchain.
+
+##### cancelSwapTransactionError
+
+It's emitted when an error occurs during the creation/mining of transaction process. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+
+
+```js
+sdk.on('cancelSwapTransactionError', ({error, typeError}) => {
+  //make something
+  //typeError value can be: cancelSwapIntentError or waitError. The first one means the error is occured during the process creation of the transaction. The second one means the error is occured during the mining process of the transaction.
+})
+```
+
+## Edit taker
+
+In order to edit the taker of a swap you can use the following method:
+
+```js
+const sdk = new NFTTraderSDK(....) //create the instance
+
+await sdk.editTaker(
+  swapId, //unique identifier of the swap (mandatory) 
+  addressTaker, //the address of the new taker of the swap (mandatory)
+  gasLimit, //a numeric value expressed in wei that indicates the gas limit of the transaction. The default value is 2000000 (optional)
+  gasPrice //a string value expressed in wei that indicates the gas price of the transaction. The default value is null (optional)
+)
+```
+
+This method can emits 3 different types of event.
+
+- [```editTakerTransactionCreated```](#edittakertransactioncreated)
+- [```editTakerTransactionMined```](#edittakertransactionmined)
+- [```editTakerTransactionError```](#edittakertransactionerror)
+
+##### editTakerTransactionCreated
+
+It's emitted when the transaction is created and it is waiting to be mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+
+```js
+sdk.on('editTakerTransactionCreated', ({tx}) => {
+  //make something
+  //tx object is an instance of the class TransactionResponse. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionResponse]
+})
+```
+
+##### editTakerTransactionMined
+
+It's emitted when the transaction is mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+
+```js
+sdk.on('editTakerTransactionMined', ({receipt}) => {
+  //make something
+  //receipt object is an instance of the class TransactionReceipt. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionReceipt]
+})
+```
+
+The alternative for tracking this event could be listen the ```counterpartEvent``` directly on the blockchain.
+
+##### editTakerTransactionError
+
+It's emitted when an error occurs during the creation/mining of transaction process. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+
+```js
+sdk.on('editTakerTransactionError', ({error, typeError}) => {
+  //make something
+  //typeError value can be: editCounterpartError or waitError. The first one means the error is occured during the process creation of the transaction. The second one means the error is occured during the mining process of the transaction.
+})
+```
+
+
+
+
 
