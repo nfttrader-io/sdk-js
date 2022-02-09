@@ -57,6 +57,11 @@ But the final target is very simple, once you will learn how to master the SDK, 
 - [Close a swap](#close-a-swap)
 - [Cancel a swap](#cancel-a-swap)
 - [Edit taker](#edit-taker)
+- [SDK events](#sdk-events)
+- [Read methods](#read-methods)
+- [Other methods](#other-methods)
+- [Utilities](#utilities)
+- [WebSocket provider](#websocket-provider)
 
 ## How the swap works
 
@@ -403,7 +408,80 @@ sdk.on('editTakerTransactionError', ({error, typeError}) => {
 })
 ```
 
+## SDK events
 
+As we mentioned before, the SDK provides several way to track events by saving the developer to listen directly the ```swapEvent``` or the ```counterpartEvent``` from the blockchain.
+We already seen the events the SDK fires on the previous sections but here it is a complete list:
 
+- createSwapTransactionCreated
+- createSwapTransactionMined
+- createSwapTransactionError
+- cancelSwapTransactionCreated
+- cancelSwapTransactionMined
+- cancelSwapTransactionError
+- closeSwapTransactionCreated
+- closeSwapTransactionMined
+- closeSwapTransactionError
+- editTakerTransactionCreated
+- editTakerTransactionMined
+- editTakerTransactionError
 
+These events can be tracked using the ```on()``` method. Here an example of implementation of it.
+
+```js
+const sdk = new NFTTraderSDK(....)
+
+sdk.on('createSwapTransactionCreated', async ({tx}) => {
+  const txHash = tx.hash
+  console.log('Transaction hash is ', txHash)
+  await myApi.storeOnDB(txHash)
+})
+
+await sdk.createSwap(....) //naturally the on() must be called before the initialization of the related method from which we want to catch the event
+```
+
+Naturally you can also remove the listener if you don't want to track the event anymore. It depends by the logic of your code.
+Example:
+
+```js
+const sdk = new NFTTraderSDK(....)
+
+sdk.on('createSwapTransactionCreated', async ({tx}) => {
+  const txHash = tx.hash
+  console.log('Transaction hash is ', txHash)
+  await myApi.storeOnDB(txHash)
+})
+
+await sdk.createSwap(....) //naturally the on() must be called before the initialization of the related method from which we want to catch the event
+
+//my logic
+//E.g. creation of other swap etc etc
+
+sdk.off('createSwapTransactionCreated') //remove all the listener
+```
+
+```.off()``` has two parameters, the ```eventName``` and the ```callbackFn```. The first one is mandatory and it represents the event we want to remove from the listener. The second parameter is the callback function and it is optional. Specifying the second parameter can be useful if we want to remove just one listener without removing the others. Example:
+
+```js
+const sdk = new NFTTraderSDK(....)
+
+sdk.on('createSwapTransactionCreated', async ({tx}) => {
+  const txHash = tx.hash
+  console.log('Transaction hash is ', txHash)
+  await myApi.storeOnDB(txHash)
+})
+
+sdk.on('createSwapTransactionCreated', async ({tx}) => {
+  console.log('bla bla')
+})
+
+await sdk.createSwap(....) //naturally the on() must be called before the initialization of the related method from which we want to catch the event
+
+//my logic
+//E.g. creation of other swap etc etc
+
+sdk.off('createSwapTransactionCreated', async ({tx}) => {
+  console.log('bla bla')
+}) //remove just the listener with the specified callback function
+```
 
