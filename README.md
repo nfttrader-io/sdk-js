@@ -678,7 +678,7 @@ assetsArray.clearAssetsArray() //clear everything you've putted before in the As
 
 ##### getAssetsArray() : void
 
-Return the assets array.
+Returns the assets array.
 Let's see an example of implementation.
 
 ```js
@@ -703,3 +703,79 @@ await sdk.createSwap({
   assetsTaker : assetsTaker
 })
 ```
+
+## WebSocket provider
+
+The SDK provides you also a way to interact directly with the event emitted by the NFT Trader Smart Contract. The interaction are made through the ```WebSocketProvider``` object.
+To create an instance of ```WebSocketProvider``` object you can do in the following way:
+
+```js
+const sdk = new NFTTraderSDK(....)
+
+const webSocketProvider = new sdk.WebSocketProvider({
+  wssUrl : 'URL_OF_WEBSOCKET_PROVIDER', 
+  network : 'NETWORK'
+})
+```
+
+```WebSocketProvider``` class provide you the following methods:
+
+###### - **onSwapEvent(callbackFn[, config]) : void**
+###### - **onCounterpartEvent(callbackFn[, config]) : void**
+###### - **onPaymentReceived(callbackFn[, config]) : void**
+
+Let's see in the details what these methods provide.
+
+##### onSwapEvent(callbackFn[, config]) : void
+
+Add a listener through a websocket directly on the smart contract. This method will tracks every ```swapEvent``` emitted by the NFT Trader Smart Contract. Optionally, you can filter which ```swapEvent``` track by specifying the ```config``` object. ```config``` object it is used internally to filter the events with topics. The ```swapEvent``` is fired during the creation of the swap, the closing of the swap or when a user cancels a swap.
+
+```js
+const sdk = new NFTTraderSDK(....)
+const webSocketProvider = new sdk.WebSocketProvider(....)
+
+webSocketProvider.onSwapEvent(function () {
+  //callback function fired once the swapEvent it is fired
+}, {
+  creator : '', //the address of the creator of the swap or the taker 
+  time : 1234567, //number indicating the UNIX date in which the swap is occured
+  status : 1 //the status of the swap you want to track. 0 means Opened, 1 means Closed, 2 means Canceled
+})
+```
+
+##### onCounterpartEvent(callbackFn[, config]) : void
+
+Add a listener through a websocket directly on the smart contract. This method will tracks every ```counterpartEvent``` emitted by the NFT Trader Smart Contract. Optionally, you can filter which ```counterpartEvent``` track by specifying the ```config``` object. ```config``` object it is used internally to filter the events with topics. The ```counterpartEvent``` is fired when a user decide to edit the taker of the swap.
+
+```js
+const sdk = new NFTTraderSDK(....)
+const webSocketProvider = new sdk.WebSocketProvider(....)
+
+webSocketProvider.onCounterpartEvent(function () {
+  //callback function fired once the counterpartEvent it is fired
+}, {
+  swapId : 100, //swap id to filter
+  counterpart : '' //address to filter
+})
+```
+
+##### onPaymentReceived(callbackFn[, config]) : void
+
+Add a listener through a websocket directly on the smart contract. This method will tracks every ```paymentReceived``` emitted by the NFT Trader Smart Contract. Optionally, you can filter which ```paymentReceived``` track by specifying the ```config``` object. ```config``` object it is used internally to filter the events with topics. The ```paymentReceived``` is fired when a user deposits ethers on the smart contract.
+
+```js
+const sdk = new NFTTraderSDK(....)
+const webSocketProvider = new sdk.WebSocketProvider(....)
+
+webSocketProvider.onPaymentReceived(function () {
+  //callback function fired once the paymentReceived it is fired
+}, {
+  payer : '' //address of the payer to filter
+})
+```
+
+## Credits
+
+This SDK it is property of Salad Labs Inc.
+Every unauthorized copy or distribution is stricly forbidden without the consent of Salad Labs Inc.
+This SDK is protected by the copyright property law.
