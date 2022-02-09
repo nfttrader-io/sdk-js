@@ -460,7 +460,7 @@ await sdk.createSwap(....) //naturally the on() must be called before the initia
 sdk.off('createSwapTransactionCreated') //remove all the listener
 ```
 
-```.off()``` has two parameters, the ```eventName``` and the ```callbackFn```. The first one is mandatory and it represents the event we want to remove from the listener. The second parameter is the callback function and it is optional. Specifying the second parameter can be useful if we want to remove just one listener without removing the others. Example:
+```.off()``` has two parameters, the ```eventName``` and the ```callbackFn```. The first one is mandatory and it represents the event we want to remove from the listener. The second parameter is the callback function and it is optional. Specifying the second parameter can be useful if you want to remove just one listener without removing the others. Example:
 
 ```js
 const sdk = new NFTTraderSDK(....)
@@ -485,3 +485,108 @@ sdk.off('createSwapTransactionCreated', async ({tx}) => {
 }) //remove just the listener with the specified callback function
 ```
 
+## Read methods
+
+The SDK provides you several methods to get information from the NFT Trader Smart Contract. Here a list of read methods you can use.
+
+```js
+getSwapDetails(maker, swapId) : Promise(Object)
+```
+
+Return the swap major details. Example:
+
+```js
+const { 
+  id, //the swap unique identifier
+  addressMaker, //the address of the maker
+  discountMaker, //internal parameter used by the smart contract. For more info contact the team.
+  valueMaker, //the amount in wei placed by the creator of the swap
+  flatFeeMaker, //internal parameter used by the smart contract. For more info contact the team.
+  addressTaker, //the address of the taker (counterparty)
+  discountTaker, //internal parameter used by the smart contract. For more info contact the team.
+  valueTaker, //the amount in wei placed by the counterpart of the swap
+  flatFeeTaker, //internal parameter used by the smart contract. For more info contact the team.
+  swapStart, //number indicating the date in which the swap was created
+  swapEnd, //number indicating the date in which the swap was closed
+  flagFlatFee, //internal parameter used by the smart contract. For more info contact the team.
+  flagRoyalties, //internal parameter used by the smart contract. For more info contact the team.
+  status, //status of the swap. 0 means opened, 1 means closed, 2 means canceled
+  royaltiesMaker, //internal parameter used by the smart contract. For more info contact the team.
+  royaltiesTaker //internal parameter used by the smart contract. For more info contact the team.
+} = await sdk.getSwapDetails(maker, swapId)
+```
+
+```js
+getSwapAssets(swapId) : Promise(Object)
+```
+
+Return the swap assets array details. The structure of these arrays will be explained in the next sections. Example:
+
+```js
+const swapId = 10 //example
+const {
+  assetsMaker, //the array of creator assets involved in the swap
+  assetsTaker //the array of taker assets involved in the swap
+} = await sdk.getSwapAssets(swapId)
+```
+
+```js
+isERC20WhiteListed(erc20Address) : Promise(boolean)
+```
+
+Return ```true``` or ```false``` if the ERC20 token it is whitelisted by the NFT Trader Smart Contract. Example:
+
+```js
+const isWhitelisted = await sdk.isERC20WhiteListed('0xdac17f958d2ee523a2206206994597c13d831ec7') //Tether token
+```
+
+```js
+isNFTBlacklisted(assetAddress) : Promise(boolean)
+```
+
+Return ```true``` or ```false``` if the ERC721/1155 token it is blacklisted by the NFT Trader Smart Contract. Example:
+
+```js
+const isBlacklisted = await sdk.isNFTBlacklisted('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d') //BAYC
+```
+
+```js
+getPayment() : Promise(Object)
+```
+
+Return an object representing the payment configuration of the NFT Trader Smart Contract. Example:
+
+```js
+const { //this parameters are intended to be used internally by the smart contract. Contact the team if you want more information about it.
+  flagFlatFee, 
+  flagRoyalties, 
+  flatFee, 
+  bps, 
+  scalePercent
+} = await sdk.getPayment()
+```
+
+```js
+getReferenceAddress() : Promise(Object)
+```
+
+Return an object representing the reference address configuration of the NFT Trader Smart Contract. Example:
+
+```js
+const { //this parameters are intended to be used internally by the smart contract. Contact the team if you want more information about it.
+  ROYALTYENGINEADDRESS, 
+  TRADESQUAD, 
+  PARTNERSQUAD, 
+  VAULT
+} = await sdk.getReferenceAddress()
+```
+
+```js
+isBannedAddress(address) : Promise(boolean)
+```
+
+Return ```true``` or ```false``` if the msg.sender is banned by the NFT Trader Smart Contract. Example:
+
+```js
+const isBanned = await sdk.isNFTBlacklisted('0x87B96FE67F93bc795B7bb6957A4812DA1ec5e4Cf') //a random address account
+```
