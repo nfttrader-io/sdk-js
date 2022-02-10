@@ -1,7 +1,7 @@
 # NFT Trader Javascript SDK
 
 Welcome to the official repository of the P2P OTC NFT Trader platform developed by the official NFT Trader team!
-The primary goal with this package is to offer all web3 developers the ability to integrate our robust NFT Trader technology inside other external DApps (Decentralized Applications). Thus, unlocking the ability for other applications and protocols to directly swap NFTs (erc721), ERC20, ERC1155 tokens, and other digital assets.
+The primary goal with this package is to offer all web3 developers a simple design to integrate our robust NFT Trader technology inside other external DApps (Decentralized Applications). Thus, unlocking the ability for other applications and protocols to have a system which allows for the swapping of NFTs (erc721), ERC20, ERC1155 tokens on Ethereum and other digital assets on EVM congruent chains. 
 
 The package is available for Node.js and browser platforms.
 
