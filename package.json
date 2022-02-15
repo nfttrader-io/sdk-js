@@ -1,6 +1,6 @@
 {
   "name": "@nfttrader/sdk-js",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The NFT Trader official javascript SDK.",
   "main": "dist/nfttrader-sdk.js",
   "scripts": {
@@ -13,6 +13,7 @@
     "access": "public",
     "registry": "https://registry.npmjs.org"
   },
+  "files" : ["dist"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nfttrader-io/sdk-js.git"
