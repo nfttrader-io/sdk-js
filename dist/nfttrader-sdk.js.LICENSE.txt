@@ -1,7 +1,0 @@
-/**
- * [@nfttrader-io/sdk-js]{@link https://github.com/nfttrader-io/sdk-js}
- *
- * @version 1.0.0
- * @author Salad Labs Inc. [info@nfttrader.io]
- * @copyright Salad Labs Inc. 2022
- */
