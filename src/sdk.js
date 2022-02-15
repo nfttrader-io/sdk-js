@@ -45,10 +45,12 @@ function NFTTraderSDK({web3Provider, jsonRpcProvider, network, signer = null, av
         throw new Error('network not supported.')
 
     if (typeof jsonRpcProvider === 'string') {
-        if (typeof signer === 'undefined' || signer === null)
-            throw new Error('signer is mandatory if you use a JSON RPC Provider.')
-        if (signer['privateKey'] === void 0)
-            throw new Error('signer object must have a privateKey property.')
+        if (this.avoidPrivateKeySigner === false) {
+            if (typeof signer === 'undefined' || signer === null)
+                throw new Error('signer is mandatory if you use a JSON RPC Provider.')
+            if (signer['privateKey'] === void 0)
+                throw new Error('signer object must have a privateKey property.')
+        }
         
         this.isJsonRpcProvider = true
     }
