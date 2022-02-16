@@ -9,11 +9,6 @@
     "build:node": "webpack && cp dist/nfttrader-sdk.js examples/node/ && node examples/node/example.js",
     "build": "webpack"
   },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
-  },
-  "files" : ["dist"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nfttrader-io/sdk-js.git"
