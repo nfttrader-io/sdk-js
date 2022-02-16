@@ -13,7 +13,7 @@ Using npm:
 npm install @nfttrader-io/sdk-js
 ```
 
-Using dist:
+Using local js file:
 ```html
 <script src = "/path/to/your/js/nfttrader-sdk.js"></script>
 ```
