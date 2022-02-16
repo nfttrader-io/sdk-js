@@ -10,17 +10,17 @@ The package is available for Node.js and browser platforms.
 
 Using npm:
 ```sh
-npm install @nfttrader/sdk-js
+npm install @nfttrader-io/sdk-js
 ```
 
-Using unpkg CDN:
+Using dist:
 ```html
-<script src = "https://unpkg.com/nfttrader/dist/nfttrader-sdk.min.js"></script>
+<script src = "/path/to/your/js/nfttrader-sdk.js"></script>
 ```
 
 ## CommonJS usage
 ```js
-const NFTTraderSDK = require('@nfttrader/sdk-js')
+const NFTTraderSDK = require('@nfttrader-io/sdk-js')
 const sdk = new NFTTraderSDK(...)
 ```
 
