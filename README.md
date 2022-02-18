@@ -813,4 +813,5 @@ webSocketProvider.onPaymentReceived(function () {
 1. This SDK is the property of Salad Labs Inc. All of the contents of this SDK are protected from copying under International and Canadian copyright laws and treaties. Any unauthorized copying, alteration, distribution, transmission, performance, display or other use of this material is strictly forbidden and prohibited.
 
 2. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-   © 02/18/2022, Salad Labs Inc.
+
+© 02/18/2022, Salad Labs Inc.
