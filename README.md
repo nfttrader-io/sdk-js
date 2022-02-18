@@ -808,8 +808,8 @@ webSocketProvider.onPaymentReceived(function () {
 })
 ```
 
-## Credits
+## Copyright
 
 This SDK is the property of Salad Labs Inc.
-Every unauthorized copy or distribution is stricly forbidden without the consent of Salad Labs Inc.
-This SDK is protected by Copyright Property and Propietary Laws.
+Every unauthorized copy, distribution or manipulation of the software is stricly forbidden without the consent of Salad Labs Inc.
+This SDK is protected by the Copyright © law.
