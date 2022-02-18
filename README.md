@@ -2,37 +2,42 @@
 
 Welcome to the official repository of the P2P OTC NFT Trader platform developed by the official NFT Trader team!
 
-The primary goal with this package is to offer web3 developers a simple design to integrate our robust NFT Trader technology inside other external DApps (Decentralized Applications). This is open for all developers who would like to unlock the ability for your applications and protocols to have a system which allows for the secure swapping of NFTs (erc721), ERC20, ERC1155 tokens on Ethereum and other digital assets on EVM congruent chains. 
+The primary goal with this package is to offer web3 developers a simple design to integrate our robust NFT Trader technology inside other external DApps (Decentralized Applications). This is open for all developers who would like to unlock the ability for your applications and protocols to have a system which allows for the secure swapping of NFTs (erc721), ERC20, ERC1155 tokens on Ethereum and other digital assets on EVM congruent chains.
 
 The package is available for Node.js and browser platforms.
 
 ## Installation
 
 Using npm:
+
 ```sh
-npm install @nfttrader-io/sdk-js
+npm install @nfttrader/sdk-js
 ```
 
 Using local js file:
+
 ```html
-<script src = "/path/to/your/js/nfttrader-sdk.js"></script>
+<script src="/path/to/your/js/nfttrader-sdk.js"></script>
 ```
 
 ## CommonJS usage
+
 ```js
-const NFTTraderSDK = require('@nfttrader-io/sdk-js')
+const NFTTraderSDK = require('@nfttrader/sdk-js')
 const sdk = new NFTTraderSDK(...)
 ```
 
 ## Browser usage
+
 ```js
 const sdk = new NFTTraderSDK(...)
 ```
 
 ## Introduction
 
-The ```NFTTraderSDK``` class object is the action to which you can interact with the NFT Trader Smart Contract in a convenient manner. It contains a set of methods that allow you to simplify the interaction process with the blockchain.
+The `NFTTraderSDK` class object is the action to which you can interact with the NFT Trader Smart Contract in a convenient manner. It contains a set of methods that allow you to simplify the interaction process with the blockchain.
 The SDK is compatible on the following blockchains:
+
 - Ethereum Mainnet
 - Ethereum Rinkeby
 - Ethereum Ropsten
@@ -46,7 +51,7 @@ The SDK is compatible on the following blockchains:
 
 With the NFT Trader Javascript SDK you can create a swap order, finalize a swap order, edit the Taker of the order or cancel a swap order. Furthermore, it provides you some other utility based methods that allow you to read details of the order book, listen to specific events from the smart contract and includes helper functions in order to help you format the parameters of the NFT Trader Smart Contract in the correct way. We will describe everything in more detail throughout the next sections, so do not worry if you don't fully understand what has already been stated. 🤓
 
-The end purpose is very simple once you learn how to master the SDK. You will be able to include these sets of functionalities directly into your own platform and enable the swapping features for NFTs, ERC20 tokens and other digital assets. This is a very useful tool for many applications, particularly if you are planning to build a game with a swap market feature for trading game assets or an application / market in which you want to integrate a method for your users to swap assets with other users. There are many web3 protocols which will find this SDK useful for the purpose of trading digital assets. 
+The end purpose is very simple once you learn how to master the SDK. You will be able to include these sets of functionalities directly into your own platform and enable the swapping features for NFTs, ERC20 tokens and other digital assets. This is a very useful tool for many applications, particularly if you are planning to build a game with a swap market feature for trading game assets or an application / market in which you want to integrate a method for your users to swap assets with other users. There are many web3 protocols which will find this SDK useful for the purpose of trading digital assets.
 
 ## Table Of Contents
 
@@ -80,43 +85,43 @@ The swap "cycle" is composed by the following phases:
 #### Create Swap Phase
 
 The creation of the swap is marked as "mandatory" because it is the first operation you need to do in order to start the interaction with the system. When you are in this phase you can define the assets that will be included with the trades (ex. the Creator assets and the Taker assets), the Taker (Counterparty) of the swap, the duration and other parameters will be described in the next sections.
-Once a user has created the swap, the NFT Trader Smart Contract will emit a ```swapEvent``` with some useful data you can track for fulfilling your needs.
+Once a user has created the swap, the NFT Trader Smart Contract will emit a `swapEvent` with some useful data you can track for fulfilling your needs.
 Furthermore, the SDK will emit other events placed at the javascript level in order to give you the ability to avoid listening directly the events on the blockchain. These types of events will be described in the next sections.
 
 #### Close Swap Phase
 
-This phase is marked as "optional" since is not mandatory for the Taker (counterparty) of the swap to close it. The Taker could be a specific address or everyone (it depends how the swap is configured in the **Creation Swap phase**). 
-If the swap is to be closed by the Taker, the NFT Trader Smart Contract will emit a ```swapEvent``` with some useful data that you can track to fulfill your needs.
+This phase is marked as "optional" since is not mandatory for the Taker (counterparty) of the swap to close it. The Taker could be a specific address or everyone (it depends how the swap is configured in the **Creation Swap phase**).
+If the swap is to be closed by the Taker, the NFT Trader Smart Contract will emit a `swapEvent` with some useful data that you can track to fulfill your needs.
 As for the **Creation Swap Phase**, the SDK will emit events placed at the javascript level in order to track the transaction status.
 
 #### Edit Taker Phase
 
 This phase is marked as "optional" since is not mandatory for the Creator to edit the Taker address. It could be useful for the Creator to edit the Taker if he wants to change the counterparty because he has found a new person interested with their deal. This phase can be performed only by the Creator of the swap and no one else.
-Once a user has changed the Taker, the NFT Trader Smart Contract will emit a ```counterpartEvent``` with the data related to the new counterparty that will be involved in the swap. As for the **Creation Swap Phase**, the SDK will emit events placed at the javascript level in order to track the transaction status.
+Once a user has changed the Taker, the NFT Trader Smart Contract will emit a `counterpartEvent` with the data related to the new counterparty that will be involved in the swap. As for the **Creation Swap Phase**, the SDK will emit events placed at the javascript level in order to track the transaction status.
 
 #### Cancel Swap Phase
 
 This phase is marked as "optional" since it is not mandatory for the Creator to cancel the swap. Only the Creator can cancel a swap and no one else.
-Once a user has changed the Taker, the NFT Trader Smart Contract will emit a ```counterpartEvent``` with the data related to the new counterparty involved in the swap.
+Once a user has changed the Taker, the NFT Trader Smart Contract will emit a `counterpartEvent` with the data related to the new counterparty involved in the swap.
 As for the **Creation Swap Phase**, the SDK will emit events placed at the javascript level in order to track the transaction status.
 
 ## Initialize The NFTTraderSDK Object
 
-In order to interact with the NFT Trader Smart Contract you will need to create a new instance of the ```NFTTraderSDK``` object. 
+In order to interact with the NFT Trader Smart Contract you will need to create a new instance of the `NFTTraderSDK` object.
 There two basic ways to initialize this object because basically there are two possible scenarios.
 
 - You are developing a Backend Platform (Node.js).
 - You are developing a Single Page Application, a Website or a Plugin.
 
-If you are developing a backend platform you can initialize the ```NFTTraderSDK``` object in this way.
+If you are developing a backend platform you can initialize the `NFTTraderSDK` object in this way.
 
 ```js
 const sdk = new NFTTraderSDK({
-  jsonRpcProvider : 'RPC_URL_PROVIDER', //example: infura 
+  jsonRpcProvider : 'RPC_URL_PROVIDER', //example: infura
   network : 'NETWORK', //example: 'MAINNET', 'RINKEBY', 'KOVAN', 'POLYGON', 'MUMBAI', 'GOERLI', 'ROPSTEN', 'XDAI'
   signer : {
     privateKey : '<PRIVATE_KEY_OF_A_WALLET_OR_ACCOUNT>'
-  }, 
+  },
   avoidPrivateKeySigner : false // this is optional parameter. If the value specified is true, the NFTTraderSDK will be able to read the data from the smart contract, not to send transactions. In this way you can avoid to specify the signer property during the initialization.
 })
 
@@ -126,11 +131,11 @@ sdk.method2(...)
 ```
 
 Why do I need to specify a private key? Because in a backend environment you do not have a crypto wallet like Metamask or similar that can provide you a way to interact directly with the blockchain, by sending a transaction to a smart contract. This is why you will need to specify a private key. In order to be able to perform writing operations on the blockchain.
-Provide the ```privateKey``` parameter is not mandatory. If you specify the ```avoidPrivateKeySigner``` parameter to ```false```, you will be able to use the ```NFTTraderSDK``` object but only for performing read operations on the smart contract.
+Provide the `privateKey` parameter is not mandatory. If you specify the `avoidPrivateKeySigner` parameter to `false`, you will be able to use the `NFTTraderSDK` object but only for performing read operations on the smart contract.
 
 **IMPORTANT. WE NEVER STORE YOUR PRIVATE KEY. privateKey IS A READ-ONLY PARAMETER.**
 
-If you are developing a Frontend Application (SPA), a Website or a Plugin you can initialize the ```NFTTraderSDK``` object in this manner.
+If you are developing a Frontend Application (SPA), a Website or a Plugin you can initialize the `NFTTraderSDK` object in this manner.
 
 ```js
 window.addEventListener('load', async () => {
@@ -138,37 +143,51 @@ window.addEventListener('load', async () => {
     web3Provider : window.ethereum,
     network : 'NETWORK', //example: 'MAINNET', 'RINKEBY', 'KOVAN', 'POLYGON', 'MUMBAI', 'GOERLI', 'ROPSTEN', 'XDAI'
   })
-  
+
   const ethers = sdk.getEthersJSInstance()
   provider = new ethers.providers.Web3Provider(window.ethereum)
   await provider.send('eth_requestAccounts', [])
-  
+
   //start to perform operation with the sdk
   sdk.method1(...)
   sdk.method2(...)
 })
 ```
 
-Once you have initialized the ```NFTTraderSDK``` object you will be ready to perform write or read operations on the NFT Trader Smart Contract.
+Once you have initialized the `NFTTraderSDK` object you will be ready to perform write or read operations on the NFT Trader Smart Contract.
 
 ## Instance methods
 
 The SDK will provide you the following list of methods:
 
 ###### - **createSwap(config[, gasLimit[, gasPrice]]) : Promise(void)**
+
 ###### - **closeSwap(config[, gasLimit[, gasPrice]]) : Promise(void)**
+
 ###### - **cancelSwap(swapId[, gasLimit[, gasPrice]]) : Promise(void)**
+
 ###### - **editTaker(swapId, addressTaker[, gasLimit[, gasPrice]]) : Promise(void)**
+
 ###### - **on(eventName, callbackFn) : void**
+
 ###### - **off(eventName[, callbackFn]) : void**
+
 ###### - **setBlocksNumberConfirmationRequired(blocksNumberConfirmationRequired) : void**
+
 ###### - **getSwapDetails(maker, swapId) : Promise(Object)**
+
 ###### - **getSwapAssets(swapId) : Promise(Object)**
+
 ###### - **isERC20WhiteListed(erc20Address) : Promise(boolean)**
+
 ###### - **isNFTBlacklisted(assetAddress) : Promise(boolean)**
+
 ###### - **getPayment() : Promise(Object)**
+
 ###### - **getReferenceAddress() : Promise(Object)**
+
 ###### - **isBannedAddress(address) : Promise(boolean)**
+
 ###### - **getEthersJSInstance() : Ethers**
 
 ## Create A Swap
@@ -186,7 +205,7 @@ await sdk.createSwap({
     assetsMaker : [], //Array of ERC721/1155/20 tokens placed by the creator of the swap. The default value is an empty array. The SDK provides utility methods to build this array. (optional)
     assetsTaker : [], //Array of ERC721/1155/20 tokens placed by the taker (counterparty) of the swap. The default value is an empty array. The SDK provides utility methods to build this array. (optional)
     referralAddress : '0x0000000000000000000000000000000000000000' //Can be an address of an account or a smart contract. Referral address utility will be explained in the next sections (optional)
-  }, 
+  },
   gasLimit, //a numeric value expressed in wei that indicates the gas limit of the transaction. The default value is 2000000 (optional)
   gasPrice //a string value expressed in wei that indicates the gas price of the transaction. The default value is null (optional)
 )
@@ -194,16 +213,16 @@ await sdk.createSwap({
 
 This method can emit 3 different types of events.
 
-- [```createSwapTransactionCreated```](#createswaptransactioncreated)
-- [```createSwapTransactionMined```](#createswaptransactionmined)
-- [```createSwapTransactionError```](#createswaptransactionerror)
+- [`createSwapTransactionCreated`](#createswaptransactioncreated)
+- [`createSwapTransactionMined`](#createswaptransactionmined)
+- [`createSwapTransactionError`](#createswaptransactionerror)
 
 ##### createSwapTransactionCreated
 
-This is emitted when the transaction is created and it is waiting to be mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+This is emitted when the transaction is created and it is waiting to be mined. This event can be intercepted by the `on()` method (described in the next sections). Example:
 
 ```js
-sdk.on('createSwapTransactionCreated', ({tx}) => {
+sdk.on("createSwapTransactionCreated", ({ tx }) => {
   //make something
   //tx object is an instance of the class TransactionResponse. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionResponse]
 })
@@ -211,28 +230,27 @@ sdk.on('createSwapTransactionCreated', ({tx}) => {
 
 ##### createSwapTransactionMined
 
-This is emitted when the transaction is mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+This is emitted when the transaction is mined. This event can be intercepted by the `on()` method (described in the next sections). Example:
 
 ```js
-sdk.on('createSwapTransactionMined', ({receipt}) => {
+sdk.on("createSwapTransactionMined", ({ receipt }) => {
   //receipt object is an instance of the class TransactionReceipt. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionReceipt]
   const events = param.receipt.events
   const event = events[0]
-  const {_swapId} = event.args
+  const { _swapId } = event.args
   //do whatever you want
 })
 ```
 
-Intercepting the ```createSwapTransactionMined``` event can be very important if you want to extract the ```swapId``` value. This parameter is the unique identifier of the swap and it is needed by the ```closeSwap```, ```cancelSwap``` or ```editTaker``` methods.
-The alternative for tracking the ```swapId``` parameter could be listen the ```swapEvent``` directly on the blockchain.
+Intercepting the `createSwapTransactionMined` event can be very important if you want to extract the `swapId` value. This parameter is the unique identifier of the swap and it is needed by the `closeSwap`, `cancelSwap` or `editTaker` methods.
+The alternative for tracking the `swapId` parameter could be listen the `swapEvent` directly on the blockchain.
 
 ##### createSwapTransactionError
 
-This is emitted when an error occurs during the creation/mining of transaction process. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
-
+This is emitted when an error occurs during the creation/mining of transaction process. This event can be intercepted by the `on()` method (described in the next sections). Example:
 
 ```js
-sdk.on('createSwapTransactionError', ({error, typeError}) => {
+sdk.on("createSwapTransactionError", ({ error, typeError }) => {
   //make something
   //typeError value can be: createSwapIntentError or waitError. The first one means the error is occured during the process creation of the transaction. The second one means the error is occured during the mining process of the transaction.
 })
@@ -247,7 +265,7 @@ const sdk = new NFTTraderSDK(....) //create the instance
 
 await sdk.closeSwap({
   maker : 'ADDRESS_OF_THE_MAKER', //address of the maker of the swap (mandatory)
-  swapId : 0, //unique identifier of the swap (mandatory) 
+  swapId : 0, //unique identifier of the swap (mandatory)
   referralAddress : '0x0000000000000000000000000000000000000000' //Can be an address of an account or a smart contract. Referral address utility will be explained in the next sections (optional)
   },
   gasLimit, //a numeric value expressed in wei that indicates the gas limit of the transaction. The default value is 2000000 (optional)
@@ -257,16 +275,16 @@ await sdk.closeSwap({
 
 This method can emit 3 different types of events.
 
-- [```closeSwapTransactionCreated```](#closeswaptransactioncreated)
-- [```closeSwapTransactionMined```](#closeswaptransactionmined)
-- [```closeSwapTransactionError```](#closeswaptransactionerror)
+- [`closeSwapTransactionCreated`](#closeswaptransactioncreated)
+- [`closeSwapTransactionMined`](#closeswaptransactionmined)
+- [`closeSwapTransactionError`](#closeswaptransactionerror)
 
 ##### closeSwapTransactionCreated
 
-This is emitted when the transaction is created and it is waiting to be mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+This is emitted when the transaction is created and it is waiting to be mined. This event can be intercepted by the `on()` method (described in the next sections). Example:
 
 ```js
-sdk.on('closeSwapTransactionCreated', ({tx}) => {
+sdk.on("closeSwapTransactionCreated", ({ tx }) => {
   //make something
   //tx object is an instance of the class TransactionResponse. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionResponse]
 })
@@ -274,10 +292,10 @@ sdk.on('closeSwapTransactionCreated', ({tx}) => {
 
 ##### closeSwapTransactionMined
 
-This is emitted when the transaction is mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+This is emitted when the transaction is mined. This event can be intercepted by the `on()` method (described in the next sections). Example:
 
 ```js
-sdk.on('closeSwapTransactionMined', ({receipt}) => {
+sdk.on("closeSwapTransactionMined", ({ receipt }) => {
   //make something
   //receipt object is an instance of the class TransactionReceipt. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionReceipt]
 })
@@ -285,11 +303,10 @@ sdk.on('closeSwapTransactionMined', ({receipt}) => {
 
 ##### closeSwapTransactionError
 
-This is emitted when an error occurs during the creation/mining of transaction process. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
-
+This is emitted when an error occurs during the creation/mining of transaction process. This event can be intercepted by the `on()` method (described in the next sections). Example:
 
 ```js
-sdk.on('closeSwapTransactionError', ({error, typeError}) => {
+sdk.on("closeSwapTransactionError", ({ error, typeError }) => {
   //make something
   //typeError value can be: closeSwapIntentError or waitError. The first one means the error is occured during the process creation of the transaction. The second one means the error is occured during the mining process of the transaction.
 })
@@ -303,7 +320,7 @@ In order to cancel a swap you can use the following method:
 const sdk = new NFTTraderSDK(....) //create the instance
 
 await sdk.cancelSwap(
-  swapId, //unique identifier of the swap (mandatory) 
+  swapId, //unique identifier of the swap (mandatory)
   gasLimit, //a numeric value expressed in wei that indicates the gas limit of the transaction. The default value is 2000000 (optional)
   gasPrice //a string value expressed in wei that indicates the gas price of the transaction. The default value is null (optional)
 )
@@ -311,16 +328,16 @@ await sdk.cancelSwap(
 
 This method can emit 3 different types of events.
 
-- [```cancelSwapTransactionCreated```](#cancelswaptransactioncreated)
-- [```cancelSwapTransactionMined```](#cancelswaptransactionmined)
-- [```cancelSwapTransactionError```](#cancelswaptransactionerror)
+- [`cancelSwapTransactionCreated`](#cancelswaptransactioncreated)
+- [`cancelSwapTransactionMined`](#cancelswaptransactionmined)
+- [`cancelSwapTransactionError`](#cancelswaptransactionerror)
 
 ##### cancelSwapTransactionCreated
 
-This is emitted when the transaction is created and it is waiting to be mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+This is emitted when the transaction is created and it is waiting to be mined. This event can be intercepted by the `on()` method (described in the next sections). Example:
 
 ```js
-sdk.on('cancelSwapTransactionCreated', ({tx}) => {
+sdk.on("cancelSwapTransactionCreated", ({ tx }) => {
   //make something
   //tx object is an instance of the class TransactionResponse. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionResponse]
 })
@@ -328,24 +345,23 @@ sdk.on('cancelSwapTransactionCreated', ({tx}) => {
 
 ##### cancelSwapTransactionMined
 
-This is emitted when the transaction is mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+This is emitted when the transaction is mined. This event can be intercepted by the `on()` method (described in the next sections). Example:
 
 ```js
-sdk.on('cancelSwapTransactionMined', ({receipt}) => {
+sdk.on("cancelSwapTransactionMined", ({ receipt }) => {
   //make something
   //receipt object is an instance of the class TransactionReceipt. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionReceipt]
 })
 ```
 
-The alternative for tracking this event could be listen the ```swapEvent``` directly on the blockchain.
+The alternative for tracking this event could be listen the `swapEvent` directly on the blockchain.
 
 ##### cancelSwapTransactionError
 
-This is emitted when an error occurs during the creation/mining of transaction process. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
-
+This is emitted when an error occurs during the creation/mining of transaction process. This event can be intercepted by the `on()` method (described in the next sections). Example:
 
 ```js
-sdk.on('cancelSwapTransactionError', ({error, typeError}) => {
+sdk.on("cancelSwapTransactionError", ({ error, typeError }) => {
   //make something
   //typeError value can be: cancelSwapIntentError or waitError. The first one means the error is occured during the process creation of the transaction. The second one means the error is occured during the mining process of the transaction.
 })
@@ -359,7 +375,7 @@ In order to edit the taker of a swap you can use the following method:
 const sdk = new NFTTraderSDK(....) //create the instance
 
 await sdk.editTaker(
-  swapId, //unique identifier of the swap (mandatory) 
+  swapId, //unique identifier of the swap (mandatory)
   addressTaker, //the address of the new taker of the swap (mandatory)
   gasLimit, //a numeric value expressed in wei that indicates the gas limit of the transaction. The default value is 2000000 (optional)
   gasPrice //a string value expressed in wei that indicates the gas price of the transaction. The default value is null (optional)
@@ -368,16 +384,16 @@ await sdk.editTaker(
 
 This method can emit 3 different types of events.
 
-- [```editTakerTransactionCreated```](#edittakertransactioncreated)
-- [```editTakerTransactionMined```](#edittakertransactionmined)
-- [```editTakerTransactionError```](#edittakertransactionerror)
+- [`editTakerTransactionCreated`](#edittakertransactioncreated)
+- [`editTakerTransactionMined`](#edittakertransactionmined)
+- [`editTakerTransactionError`](#edittakertransactionerror)
 
 ##### editTakerTransactionCreated
 
-This is emitted when the transaction is created and it is waiting to be mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+This is emitted when the transaction is created and it is waiting to be mined. This event can be intercepted by the `on()` method (described in the next sections). Example:
 
 ```js
-sdk.on('editTakerTransactionCreated', ({tx}) => {
+sdk.on("editTakerTransactionCreated", ({ tx }) => {
   //make something
   //tx object is an instance of the class TransactionResponse. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionResponse]
 })
@@ -385,23 +401,23 @@ sdk.on('editTakerTransactionCreated', ({tx}) => {
 
 ##### editTakerTransactionMined
 
-This is emitted when the transaction is mined. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+This is emitted when the transaction is mined. This event can be intercepted by the `on()` method (described in the next sections). Example:
 
 ```js
-sdk.on('editTakerTransactionMined', ({receipt}) => {
+sdk.on("editTakerTransactionMined", ({ receipt }) => {
   //make something
   //receipt object is an instance of the class TransactionReceipt. For more info visit the ethers js docs [https://docs.ethers.io/v5/api/providers/types/#providers-TransactionReceipt]
 })
 ```
 
-The alternative for tracking this event could be listen the ```counterpartEvent``` directly on the blockchain.
+The alternative for tracking this event could be listen the `counterpartEvent` directly on the blockchain.
 
 ##### editTakerTransactionError
 
-This is emitted when an error occurs during the creation/mining of transaction process. This event can be intercepted by the ```on()``` method (described in the next sections). Example:
+This is emitted when an error occurs during the creation/mining of transaction process. This event can be intercepted by the `on()` method (described in the next sections). Example:
 
 ```js
-sdk.on('editTakerTransactionError', ({error, typeError}) => {
+sdk.on("editTakerTransactionError", ({ error, typeError }) => {
   //make something
   //typeError value can be: editCounterpartError or waitError. The first one means the error is occured during the process creation of the transaction. The second one means the error is occured during the mining process of the transaction.
 })
@@ -409,7 +425,7 @@ sdk.on('editTakerTransactionError', ({error, typeError}) => {
 
 ## SDK events
 
-As we mentioned earlier, the SDK provides several ways to track events by saving the developer to listen directly the ```swapEvent``` or the ```counterpartEvent``` from the blockchain.
+As we mentioned earlier, the SDK provides several ways to track events by saving the developer to listen directly the `swapEvent` or the `counterpartEvent` from the blockchain.
 We have already seen the events which the SDK fires on the previous sections but here is a complete list:
 
 - createSwapTransactionCreated
@@ -425,7 +441,7 @@ We have already seen the events which the SDK fires on the previous sections but
 - editTakerTransactionMined
 - editTakerTransactionError
 
-These events can be tracked using the ```on()``` method. Here is an implementation example of it.
+These events can be tracked using the `on()` method. Here is an implementation example of it.
 
 ```js
 const sdk = new NFTTraderSDK(....)
@@ -459,7 +475,7 @@ await sdk.createSwap(....) //naturally the on() must be called before the initia
 sdk.off('createSwapTransactionCreated') //remove all the listener
 ```
 
-```.off()``` has two parameters, the ```eventName``` and the ```callbackFn```. The first one is mandatory and it represents the event that we want to remove from the listener. The second parameter is the callback function and it is optional. Specifying the second parameter can be useful if you want to remove just one listener without removing the others. Example:
+`.off()` has two parameters, the `eventName` and the `callbackFn`. The first one is mandatory and it represents the event that we want to remove from the listener. The second parameter is the callback function and it is optional. Specifying the second parameter can be useful if you want to remove just one listener without removing the others. Example:
 
 ```js
 const sdk = new NFTTraderSDK(....)
@@ -493,7 +509,7 @@ The SDK provides you several methods to get information from the NFT Trader Smar
 Returns the major details of the swap. Example:
 
 ```js
-const { 
+const {
   id, //the swap unique identifier
   addressMaker, //the address of the maker
   discountMaker, //internal parameter used by the smart contract. For more info contact the team.
@@ -509,7 +525,7 @@ const {
   flagRoyalties, //internal parameter used by the smart contract. For more info contact the team.
   status, //status of the swap. 0 means opened, 1 means closed, 2 means canceled
   royaltiesMaker, //internal parameter used by the smart contract. For more info contact the team.
-  royaltiesTaker //internal parameter used by the smart contract. For more info contact the team.
+  royaltiesTaker, //internal parameter used by the smart contract. For more info contact the team.
 } = await sdk.getSwapDetails(maker, swapId)
 ```
 
@@ -521,24 +537,28 @@ Return the swap assets array details. The structure of these arrays will be expl
 const swapId = 10 //example
 const {
   assetsMaker, //the array of creator assets involved in the swap
-  assetsTaker //the array of taker assets involved in the swap
+  assetsTaker, //the array of taker assets involved in the swap
 } = await sdk.getSwapAssets(swapId)
 ```
 
 ##### isERC20WhiteListed(erc20Address) : Promise(boolean)
 
-Return ```true``` or ```false``` if the ERC20 token is whitelisted by the NFT Trader Smart Contract. Example:
+Return `true` or `false` if the ERC20 token is whitelisted by the NFT Trader Smart Contract. Example:
 
 ```js
-const isWhitelisted = await sdk.isERC20WhiteListed('0xdac17f958d2ee523a2206206994597c13d831ec7') //Tether token
+const isWhitelisted = await sdk.isERC20WhiteListed(
+  "0xdac17f958d2ee523a2206206994597c13d831ec7"
+) //Tether token
 ```
 
 ##### isNFTBlacklisted(assetAddress) : Promise(boolean)
 
-Return ```true``` or ```false``` if the ERC721/1155 token is blacklisted by the NFT Trader Smart Contract. Example:
+Return `true` or `false` if the ERC721/1155 token is blacklisted by the NFT Trader Smart Contract. Example:
 
 ```js
-const isBlacklisted = await sdk.isNFTBlacklisted('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d') //BAYC
+const isBlacklisted = await sdk.isNFTBlacklisted(
+  "0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"
+) //BAYC
 ```
 
 ##### getPayment() : Promise(Object)
@@ -546,12 +566,13 @@ const isBlacklisted = await sdk.isNFTBlacklisted('0xbc4ca0eda7647a8ab7c2061c2e11
 Return an object representing the payment configuration of the NFT Trader Smart Contract. Example:
 
 ```js
-const { //these parameters are intended to be used internally by the smart contract. Contact the team if you want more information about it.
-  flagFlatFee, 
-  flagRoyalties, 
-  flatFee, 
-  bps, 
-  scalePercent
+const {
+  //these parameters are intended to be used internally by the smart contract. Contact the team if you want more information about it.
+  flagFlatFee,
+  flagRoyalties,
+  flatFee,
+  bps,
+  scalePercent,
 } = await sdk.getPayment()
 ```
 
@@ -560,20 +581,23 @@ const { //these parameters are intended to be used internally by the smart contr
 Return an object representing the reference address configuration of the NFT Trader Smart Contract. Example:
 
 ```js
-const { //these parameters are intended to be used internally by the smart contract. Contact the team if you want more information about it.
-  ROYALTYENGINEADDRESS, 
-  TRADESQUAD, 
-  PARTNERSQUAD, 
-  VAULT
+const {
+  //these parameters are intended to be used internally by the smart contract. Contact the team if you want more information about it.
+  ROYALTYENGINEADDRESS,
+  TRADESQUAD,
+  PARTNERSQUAD,
+  VAULT,
 } = await sdk.getReferenceAddress()
 ```
 
 ##### isBannedAddress(address) : Promise(boolean)
 
-Return ```true``` or ```false``` if the msg.sender is banned by the NFT Trader Smart Contract. Example:
+Return `true` or `false` if the msg.sender is banned by the NFT Trader Smart Contract. Example:
 
 ```js
-const isBanned = await sdk.isNFTBlacklisted('0x87B96FE67F93bc795B7bb6957A4812DA1ec5e4Cf') //a random address account
+const isBanned = await sdk.isNFTBlacklisted(
+  "0x87B96FE67F93bc795B7bb6957A4812DA1ec5e4Cf"
+) //a random address account
 ```
 
 ## Other methods
@@ -595,17 +619,17 @@ Set the blocks confirmation number used to consider a transaction mined. Example
 ```js
 sdk.setBlocksNumberConfirmationRequired(10) //the confirmation number cannot be lower than one.
 
-sdk.on('createSwapTransactionMined', ({tx}) => {
+sdk.on("createSwapTransactionMined", ({ tx }) => {
   //this event will be fired after 10 blocks will be mined on the blockchain
 })
 ```
 
 ## Utilities
 
-The SDK provides you a utility class object for building the ```assetsMaker``` or the ```assetsTaker``` arrays useful for the ```createSwap``` method.
-In order to build these two kinds of arrays there is a utility class called ```AssetsArray```.
+The SDK provides you a utility class object for building the `assetsMaker` or the `assetsTaker` arrays useful for the `createSwap` method.
+In order to build these two kinds of arrays there is a utility class called `AssetsArray`.
 
-To create an instance of ```AssetsArray``` object you can do so in the following way:
+To create an instance of `AssetsArray` object you can do so in the following way:
 
 ```js
 const sdk = new NFTTraderSDK(....)
@@ -613,12 +637,16 @@ const sdk = new NFTTraderSDK(....)
 const assetsArray = new sdk.AssetsArray()
 ```
 
-```AssetsArray``` class provide you the following methods:
+`AssetsArray` class provide you the following methods:
 
 ###### - **addERC20Asset(address, tokenAmount) : void**
+
 ###### - **addERC721Asset(address, tokenIds) : void**
+
 ###### - **addERC1155Asset(address, tokenIds, tokenAmounts) : void**
+
 ###### - **clearAssetsArray() : void**
+
 ###### - **getAssetsArray() : void**
 
 Let's see in details what these methods provide.
@@ -638,7 +666,7 @@ assetsArray.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', 10000000
 
 ##### addERC721Asset(address, tokenIds) : void
 
-Adding an ERC721 token and the relative token ids to the AssetsArray object. ```tokenIds``` parameter must be an array with at least one element inside it.
+Adding an ERC721 token and the relative token ids to the AssetsArray object. `tokenIds` parameter must be an array with at least one element inside it.
 
 Let's see an example of implementation.
 
@@ -646,12 +674,12 @@ Let's see an example of implementation.
 const sdk = new NFTTraderSDK(....)
 const assetsArray = new sdk.AssetsArray()
 
-assetsArray.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', [1,3456]) //the address of the token is BAYC NFT. we're adding to the array of assets the token ids number 1 and 3456. 
+assetsArray.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', [1,3456]) //the address of the token is BAYC NFT. we're adding to the array of assets the token ids number 1 and 3456.
 ```
 
 ##### addERC1155Asset(address, tokenIds, tokenAmounts) : void
 
-Adding an ERC1155 token, the relative token ids and amounts to the AssetsArray object. ```tokenIds``` parameter must be an array with at least one element inside it. ```tokenAmounts``` must be an array with at least one element inside it. The size of ```tokenIds``` and ```tokenAmounts``` array must be equal.
+Adding an ERC1155 token, the relative token ids and amounts to the AssetsArray object. `tokenIds` parameter must be an array with at least one element inside it. `tokenAmounts` must be an array with at least one element inside it. The size of `tokenIds` and `tokenAmounts` array must be equal.
 
 Let's see an example of implementation.
 
@@ -710,29 +738,31 @@ await sdk.createSwap({
 
 ## WebSocket provider
 
-The SDK also provides a way to interact directly with the event emitted by the NFT Trader Smart Contract. The interactions are made through the ```WebSocketProvider``` object.
-To create an instance of ```WebSocketProvider``` object you can do so in the following way:
+The SDK also provides a way to interact directly with the event emitted by the NFT Trader Smart Contract. The interactions are made through the `WebSocketProvider` object.
+To create an instance of `WebSocketProvider` object you can do so in the following way:
 
 ```js
 const sdk = new NFTTraderSDK(....)
 
 const webSocketProvider = new sdk.WebSocketProvider({
-  wssUrl : 'URL_OF_WEBSOCKET_PROVIDER', 
+  wssUrl : 'URL_OF_WEBSOCKET_PROVIDER',
   network : 'NETWORK'
 })
 ```
 
-```WebSocketProvider``` class provides you the following methods:
+`WebSocketProvider` class provides you the following methods:
 
 ###### - **onSwapEvent(callbackFn[, config]) : void**
+
 ###### - **onCounterpartEvent(callbackFn[, config]) : void**
+
 ###### - **onPaymentReceived(callbackFn[, config]) : void**
 
 Let's see in the details what these methods provide.
 
 ##### onSwapEvent(callbackFn[, config]) : void
 
-Add a listener through a websocket directly on the smart contract. This method will tracks every ```swapEvent``` emitted by the NFT Trader Smart Contract. Optionally, you can filter which ```swapEvent``` track by specifying the ```config``` object. ```config``` object it is used internally to filter the events with topics. The ```swapEvent``` is fired during the creation of the swap, the closing of the swap or when a user cancels a swap.
+Add a listener through a websocket directly on the smart contract. This method will tracks every `swapEvent` emitted by the NFT Trader Smart Contract. Optionally, you can filter which `swapEvent` track by specifying the `config` object. `config` object it is used internally to filter the events with topics. The `swapEvent` is fired during the creation of the swap, the closing of the swap or when a user cancels a swap.
 
 ```js
 const sdk = new NFTTraderSDK(....)
@@ -741,7 +771,7 @@ const webSocketProvider = new sdk.WebSocketProvider(....)
 webSocketProvider.onSwapEvent(function () {
   //callback function fired once the swapEvent it is fired
 }, {
-  creator : '', //the address of the creator of the swap or the taker 
+  creator : '', //the address of the creator of the swap or the taker
   time : 1234567, //number indicating the UNIX date in which the swap is occured
   status : 1 //the status of the swap you want to track. 0 means Opened, 1 means Closed, 2 means Canceled
 })
@@ -749,7 +779,7 @@ webSocketProvider.onSwapEvent(function () {
 
 ##### onCounterpartEvent(callbackFn[, config]) : void
 
-Add a listener through a websocket directly on the smart contract. This method will tracks every ```counterpartEvent``` emitted by the NFT Trader Smart Contract. Optionally, you can filter which ```counterpartEvent``` track by specifying the ```config``` object. ```config``` object it is used internally to filter the events with topics. The ```counterpartEvent``` is fired when a user decides to edit the taker of the swap.
+Add a listener through a websocket directly on the smart contract. This method will tracks every `counterpartEvent` emitted by the NFT Trader Smart Contract. Optionally, you can filter which `counterpartEvent` track by specifying the `config` object. `config` object it is used internally to filter the events with topics. The `counterpartEvent` is fired when a user decides to edit the taker of the swap.
 
 ```js
 const sdk = new NFTTraderSDK(....)
@@ -765,7 +795,7 @@ webSocketProvider.onCounterpartEvent(function () {
 
 ##### onPaymentReceived(callbackFn[, config]) : void
 
-Add a listener through a websocket directly on the smart contract. This method will track every ```paymentReceived``` emitted by the NFT Trader Smart Contract. Optionally, you can filter which ```paymentReceived``` track by specifying the ```config``` object. ```config``` object it is used internally to filter the events with topics. The ```paymentReceived``` is fired when a user deposits Ether on the smart contract.
+Add a listener through a websocket directly on the smart contract. This method will track every `paymentReceived` emitted by the NFT Trader Smart Contract. Optionally, you can filter which `paymentReceived` track by specifying the `config` object. `config` object it is used internally to filter the events with topics. The `paymentReceived` is fired when a user deposits Ether on the smart contract.
 
 ```js
 const sdk = new NFTTraderSDK(....)
