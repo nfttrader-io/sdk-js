@@ -1,6 +1,6 @@
 {
-  "name": "@nfttrader/sdk-js",
-  "version": "1.0.4",
+  "name": "@nfttrader-io/sdk-js",
+  "version": "1.0.0",
   "description": "The NFT Trader official javascript SDK.",
   "main": "dist/nfttrader-sdk.js",
   "scripts": {
@@ -8,6 +8,10 @@
     "build:browser": "webpack && cp dist/nfttrader-sdk.js examples/browser",
     "build:node": "webpack && cp dist/nfttrader-sdk.js examples/node/ && node examples/node/example.js",
     "build": "webpack"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "repository": {
     "type": "git",

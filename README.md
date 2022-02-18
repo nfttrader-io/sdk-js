@@ -11,7 +11,7 @@ The package is available for Node.js and browser platforms.
 Using npm:
 
 ```sh
-npm install @nfttrader/sdk-js
+npm install @nfttrader-io/sdk-js
 ```
 
 Using local js file:
@@ -23,7 +23,7 @@ Using local js file:
 ## CommonJS usage
 
 ```js
-const NFTTraderSDK = require('@nfttrader/sdk-js')
+const NFTTraderSDK = require('@nfttrader-io/sdk-js')
 const sdk = new NFTTraderSDK(...)
 ```
 
