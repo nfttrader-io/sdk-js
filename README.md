@@ -20,7 +20,7 @@ Using local js file (copy the file under dist folder):
 <script src="/path/to/your/js/nfttrader-sdk.js"></script>
 ```
 
-using unpkg.com
+Using unpkg.com
 
 ```html
 <script src="https://unpkg.com/@nfttrader-io/sdk-js@latest/dist/nfttrader-sdk.js"></script>
