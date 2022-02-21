@@ -14,7 +14,7 @@ Using npm:
 npm install @nfttrader-io/sdk-js
 ```
 
-Using local js file:
+Using local js file (copy the file under dist folder):
 
 ```html
 <script src="/path/to/your/js/nfttrader-sdk.js"></script>
@@ -116,7 +116,9 @@ There two basic ways to initialize this object because basically there are two p
 If you are developing a backend platform you can initialize the `NFTTraderSDK` object in this way.
 
 ```js
+const ethers = require("ethers")
 const sdk = new NFTTraderSDK({
+  ethers : ethers, //you need to provide the instance of ethers js library
   jsonRpcProvider : 'RPC_URL_PROVIDER', //example: infura
   network : 'NETWORK', //example: 'MAINNET', 'RINKEBY', 'KOVAN', 'POLYGON', 'MUMBAI', 'GOERLI', 'ROPSTEN', 'XDAI'
   signer : {
@@ -140,11 +142,11 @@ If you are developing a Frontend Application (SPA), a Website or a Plugin you ca
 ```js
 window.addEventListener('load', async () => {
   const sdk = new NFTTraderSDK({
+    ethers : ethers, //you need to provide the instance of ethers js library
     web3Provider : window.ethereum,
     network : 'NETWORK', //example: 'MAINNET', 'RINKEBY', 'KOVAN', 'POLYGON', 'MUMBAI', 'GOERLI', 'ROPSTEN', 'XDAI'
   })
 
-  const ethers = sdk.getEthersJSInstance()
   provider = new ethers.providers.Web3Provider(window.ethereum)
   await provider.send('eth_requestAccounts', [])
 

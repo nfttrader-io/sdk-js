@@ -5,6 +5,7 @@ const { events } = require("./events")
  * Create an instance of the NFTTraderSDK object.
  *
  * @param {Object} obj - configuration object for the SDK instance.
+ * @param {Ethers} obj.ethers - the ethers instance
  * @param {Provider} obj.web3Provider - the handler object for the interaction with the chain.
  * @param {string} obj.jsonRpcProvider - the RPC provider URL.
  * @param {string} obj.network - the network of the chain
