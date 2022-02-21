@@ -1,6 +1,7 @@
 require("dotenv").config()
 
 const chai = require("chai")
+const ethers = require("ethers")
 const NFTTraderSDK = require("../src/index")
 
 const assert = chai.assert
@@ -20,6 +21,7 @@ describe(
     before(function () {
       // runs once before the first test in this block
       sdk = new NFTTraderSDK({
+        ethers,
         jsonRpcProvider: PROVIDER,
         network: NETWORK,
         signer: {

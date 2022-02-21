@@ -1,4 +1,3 @@
-const ethers = require("ethers")
 const { swap, contractAbi, erc721Abi } = require("./contracts")
 const { events } = require("./events")
 
@@ -14,12 +13,17 @@ const { events } = require("./events")
  * @param {bool} obj.avoidPrivateKeySigner - flag to avoid the private key when jsonRpcProvider is enabled
  */
 function NFTTraderSDK({
+  ethers,
   web3Provider,
   jsonRpcProvider,
   network,
   signer = null,
   avoidPrivateKeySigner = false,
 }) {
+  if (!ethers)
+    throw new Error("You must provide an ethers instance to the SDK.")
+
+  this.ethers = ethers
   this.provider = null
   this.contractAddress = null
   this.contract = null
@@ -71,25 +75,25 @@ function NFTTraderSDK({
 
   try {
     if (this.isJsonRpcProvider) {
-      this.provider = new ethers.providers.JsonRpcProvider(jsonRpcProvider)
+      this.provider = new this.ethers.providers.JsonRpcProvider(jsonRpcProvider)
       if (this.avoidPrivateKeySigner === false) {
         try {
-          this.signer = new ethers.Wallet(signer.privateKey, this.provider)
+          this.signer = new this.ethers.Wallet(signer.privateKey, this.provider)
         } catch (error) {
           throw new Error("provide a valid private key for the signer.")
         }
       }
     } else if (this.isWeb3Provider) {
-      this.provider = new ethers.providers.Web3Provider(web3Provider)
+      this.provider = new this.ethers.providers.Web3Provider(web3Provider)
     }
 
     this.contractAddress = swap[network]
-    this.contract = new ethers.Contract(
+    this.contract = new this.ethers.Contract(
       this.contractAddress,
       contractAbi,
       this.provider
     )
-    console.log(this.contract)
+
     if (this.isJsonRpcProvider && this.avoidPrivateKeySigner === false)
       this.contract = this.contract.connect(this.signer)
   } catch (error) {
@@ -214,11 +218,11 @@ NFTTraderSDK.prototype.createSwap = async function (
     ? this.signer.address
     : (await this.provider.listAccounts())[0]
   const discountMaker = false
-  const valueMaker = ethers.BigNumber.from(ethMaker.toString())
+  const valueMaker = this.ethers.BigNumber.from(ethMaker.toString())
   const flatFeeMaker = 0
   const addressTaker = taker
   const discountTaker = false
-  const valueTaker = ethers.BigNumber.from(ethTaker.toString())
+  const valueTaker = this.ethers.BigNumber.from(ethTaker.toString())
   const flatFeeTaker = 0
   const swapStart = 0
   const flagFlatFee = false
@@ -254,12 +258,12 @@ NFTTraderSDK.prototype.createSwap = async function (
 
     const { TRADESQUAD, PARTNERSQUAD } = await this.getReferenceAddress()
 
-    const contractTradeSquad = new ethers.Contract(
+    const contractTradeSquad = new this.ethers.Contract(
       TRADESQUAD,
       erc721Abi,
       this.provider
     )
-    const contractPartnerSquad = new ethers.Contract(
+    const contractPartnerSquad = new this.ethers.Contract(
       PARTNERSQUAD,
       erc721Abi,
       this.provider
@@ -352,12 +356,12 @@ NFTTraderSDK.prototype.closeSwap = async function (
       : (await this.provider.listAccounts())[0]
     const { valueTaker } = await this.getSwapDetails(maker, swapId)
     const { TRADESQUAD, PARTNERSQUAD } = await this.getReferenceAddress()
-    const contractTradeSquad = new ethers.Contract(
+    const contractTradeSquad = new this.ethers.Contract(
       TRADESQUAD,
       erc721Abi,
       this.provider
     )
-    const contractPartnerSquad = new ethers.Contract(
+    const contractPartnerSquad = new this.ethers.Contract(
       PARTNERSQUAD,
       erc721Abi,
       this.provider
@@ -648,7 +652,7 @@ NFTTraderSDK.prototype.isBannedAddress = async function (address) {
  * Returns the instance of ethers used internally to this module
  */
 NFTTraderSDK.prototype.getEthersJSInstance = function () {
-  return ethers
+  return this.ethers
 }
 
 /**
@@ -657,6 +661,7 @@ NFTTraderSDK.prototype.getEthersJSInstance = function () {
  * @class SDK.AssetsArray
  */
 NFTTraderSDK.prototype.AssetsArray = function () {
+  this.assetsArrayEthers = this.ethers
   this.assetsArray = []
   this.tokenConstants = {
     ERC20: 0,
@@ -681,7 +686,7 @@ NFTTraderSDK.prototype.AssetsArray.prototype.addERC20Asset = function (
     address,
     this.tokenConstants.ERC20,
     [],
-    [ethers.BigNumber.from(tokenAmount.toString()).toString()],
+    [this.assetsArrayEthers.BigNumber.from(tokenAmount.toString()).toString()],
     [0],
     [],
   ])
@@ -772,14 +777,18 @@ NFTTraderSDK.prototype.WebSocketProvider = function ({
 }) {
   if (typeof wssUrl !== "string") throw new Error("wssUrl must be a string.")
 
+  this.webSocketProviderEthers = this.ethers
+
   try {
     if (network)
-      this.webSocketProvider = new ethers.providers.WebSocketProvider(wssUrl)
+      this.webSocketProvider =
+        new this.webSocketProviderEthers.providers.WebSocketProvider(wssUrl)
     else
-      this.webSocketProvider = new ethers.providers.WebSocketProvider(
-        wssUrl,
-        network
-      )
+      this.webSocketProvider =
+        new this.webSocketProviderEthers.providers.WebSocketProvider(
+          wssUrl,
+          network
+        )
 
     this.contractAddressWebSocketProvider = this.contractAddress
   } catch (error) {
@@ -808,7 +817,7 @@ NFTTraderSDK.prototype.WebSocketProvider.prototype.onSwapEvent = function (
   const filter = {
     address: this.contractAddressWebSocketProvider,
     topics: [
-      ethersJs.utils.id(
+      this.webSocketProviderEthers.utils.id(
         "swapEvent(address,uint256,uint8,uint256,address,address)"
       ),
       creator ? creator : null,
@@ -841,7 +850,9 @@ NFTTraderSDK.prototype.WebSocketProvider.prototype.onCounterpartEvent =
     const filter = {
       address: this.contractAddressWebSocketProvider,
       topics: [
-        ethersJs.utils.id("counterpartEvent(uint256,address)"),
+        this.webSocketProviderEthers.utils.id(
+          "counterpartEvent(uint256,address)"
+        ),
         swapId ? swapId : null,
         counterpart ? counterpart : null,
       ],
@@ -870,7 +881,9 @@ NFTTraderSDK.prototype.WebSocketProvider.prototype.onPaymentReceived =
     const filter = {
       address: this.contractAddressWebSocketProvider,
       topics: [
-        ethersJs.utils.id("paymentReceived(address,uint256)"),
+        this.webSocketProviderEthers.utils.id(
+          "paymentReceived(address,uint256)"
+        ),
         payer ? payer : null,
       ],
     }
