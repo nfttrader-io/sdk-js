@@ -649,6 +649,13 @@ NFTTraderSDK.prototype.getEthersJSInstance = function () {
 }
 
 /**
+ * Returns the instance of networks currently supported by this SDK
+ */
+NFTTraderSDK.prototype.getNetworksAvailable = function () {
+  return swap
+}
+
+/**
  * NFTTraderSDK.AssetsArray class. This class represents an array of assets
  *
  * @class SDK.AssetsArray

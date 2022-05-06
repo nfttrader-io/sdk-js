@@ -177,8 +177,6 @@ The SDK will provide you the following list of methods:
 
 ###### - **off(eventName[, callbackFn]) : void**
 
-###### - **setBlocksNumberConfirmationRequired(blocksNumberConfirmationRequired) : void**
-
 ###### - **getSwapDetails(swapId) : Promise(Object)**
 
 ###### - **getSwapAssets(swapId) : Promise(Object)**
@@ -194,6 +192,10 @@ The SDK will provide you the following list of methods:
 ###### - **isBannedAddress(address) : Promise(boolean)**
 
 ###### - **getEthersJSInstance() : Ethers**
+
+###### - **setBlocksNumberConfirmationRequired(blocksNumberConfirmationRequired) : void**
+
+###### - **getNetworksAvailable() : Object**
 
 ## Create A Swap
 
@@ -625,6 +627,14 @@ sdk.setBlocksNumberConfirmationRequired(10) //the confirmation number cannot be 
 sdk.on("createSwapTransactionMined", ({ tx }) => {
   //this event will be fired after 10 blocks will be mined on the blockchain
 })
+```
+
+##### getNetworksAvailable() : Object
+
+Return a Object instance containing the networks currently supported by this SDK. Example:
+
+```js
+const networks = sdk.getNetworksAvailable()
 ```
 
 ## Utilities
