@@ -214,7 +214,6 @@ NFTTraderSDK.prototype.createSwap = async function (
     )
   if (swapEnd < 0) throw new Error("swapEnd cannot be lower than zero.")
 
-  const swapId = 0
   const addressMaker = this.isJsonRpcProvider
     ? this.signer.address
     : (await this.provider.listAccounts())[0]
@@ -232,7 +231,6 @@ NFTTraderSDK.prototype.createSwap = async function (
   const royaltiesMaker = 0
   const royaltiesTaker = 0
   const swapIntent = [
-    swapId,
     addressMaker,
     discountMaker,
     valueMaker.toString(),
@@ -326,7 +324,6 @@ NFTTraderSDK.prototype.createSwap = async function (
  * Close the swap. Only the taker (counterparty) can close it if its address is specified. Otherwise everyone can close the swap.
  *
  * @param {Object} closeSwapObj - the closeSwap configuration object
- * @param {string} closeSwapObj.maker - the maker (creator) of the swap.
  * @param {number} closeSwapObj.swapId - the identifier of the swap.
  * @param {string} closeSwapObj.referralAddress - the referral address of the transaction.
  * @param {string} closeSwapObj.referralAddress - the referral address of the transaction.
@@ -335,11 +332,7 @@ NFTTraderSDK.prototype.createSwap = async function (
  * @param {string} gasPrice - the gas price of the transaction
  */
 NFTTraderSDK.prototype.closeSwap = async function (
-  {
-    maker,
-    swapId,
-    referralAddress = "0x0000000000000000000000000000000000000000",
-  },
+  { swapId, referralAddress = "0x0000000000000000000000000000000000000000" },
   gasLimit = 2000000,
   gasPrice = null
 ) {
@@ -355,7 +348,7 @@ NFTTraderSDK.prototype.closeSwap = async function (
     const taker = this.isJsonRpcProvider
       ? this.signer.address
       : (await this.provider.listAccounts())[0]
-    const { valueTaker } = await this.getSwapDetails(maker, swapId)
+    const { valueTaker } = await this.getSwapDetails(swapId)
     const { TRADESQUAD, PARTNERSQUAD } = await this.getReferenceAddress()
     const contractTradeSquad = new this.ethers.Contract(
       TRADESQUAD,
@@ -392,7 +385,7 @@ NFTTraderSDK.prototype.closeSwap = async function (
     }
 
     try {
-      let tx = await contract.closeSwapIntent(maker, swapId, referralAddress, {
+      let tx = await contract.closeSwapIntent(swapId, referralAddress, {
         ...txOverrides,
       })
       this.__emit("closeSwapTransactionCreated", { tx })
@@ -528,10 +521,9 @@ NFTTraderSDK.prototype.editTaker = async function (
  * @param {string} maker - the swap creator address.
  * @param {number} swapId - the identifier of the swap.
  */
-NFTTraderSDK.prototype.getSwapDetails = async function (maker, swapId) {
+NFTTraderSDK.prototype.getSwapDetails = async function (swapId) {
   try {
     return ({
-      id,
       addressMaker,
       discountMaker,
       valueMaker,
@@ -547,7 +539,7 @@ NFTTraderSDK.prototype.getSwapDetails = async function (maker, swapId) {
       status,
       royaltiesMaker,
       royaltiesTaker,
-    } = await this.contract.getSwapIntentByAddress(maker, swapId))
+    } = await this.contract.getSwapIntentByAddress(swapId))
   } catch (error) {
     throw new Error(error)
   }

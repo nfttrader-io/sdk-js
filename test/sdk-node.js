@@ -79,7 +79,6 @@ describe(
 
       it("getSwapDetails() should be ok", async function () {
         const {
-          id,
           addressMaker,
           discountMaker,
           valueMaker,
@@ -95,9 +94,8 @@ describe(
           status,
           royaltiesMaker,
           royaltiesTaker,
-        } = await sdk.getSwapDetails(ADDRESS_MAKER, Number(SWAP_ID))
+        } = await sdk.getSwapDetails(Number(SWAP_ID))
 
-        assert.isNotNull(id)
         assert.isNotNull(addressMaker)
         assert.isNotNull(discountMaker)
         assert.isNotNull(valueMaker)
@@ -153,7 +151,6 @@ describe(
 
       it("createSwap() & closeSwap() should be ok", async function () {
         sdk.on("createSwapTransactionMined", async (param) => {
-          const maker = param.receipt.from
           const events = param.receipt.events
           const event = events[0]
           const { _swapId } = event.args
@@ -170,7 +167,7 @@ describe(
             assert.isNotNull(param)
           })
 
-          await sdkCloser.closeSwap({ maker, swapId: _swapId.toNumber() })
+          await sdkCloser.closeSwap({ swapId: _swapId.toNumber() })
         })
 
         await sdk.createSwap({
