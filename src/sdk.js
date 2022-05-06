@@ -85,7 +85,9 @@ function NFTTraderSDK({
         }
       }
     } else if (this.isWeb3Provider) {
-      this.provider = new this.ethers.providers.Web3Provider(web3Provider)
+      if (!(web3Provider instanceof this.ethers.providers.Web3Provider))
+        this.provider = new this.ethers.providers.Web3Provider(web3Provider)
+      else this.provider = web3Provider
     }
 
     this.contractAddress = swap[network]
