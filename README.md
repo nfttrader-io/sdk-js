@@ -146,7 +146,7 @@ If you are developing a Frontend Application (SPA), a Website or a Plugin you ca
 window.addEventListener('load', async () => {
   const sdk = new NFTTraderSDK({
     ethers : ethers, //you need to provide the instance of ethers js library
-    web3Provider : window.ethereum,
+    web3Provider : window.ethereum, //or an instance of ethers.providers.Web3Provider
     network : 'NETWORK', //example: 'MAINNET', 'RINKEBY', 'KOVAN', 'POLYGON', 'MUMBAI', 'GOERLI', 'ROPSTEN', 'XDAI'
   })
 
