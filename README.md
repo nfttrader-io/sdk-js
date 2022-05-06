@@ -46,9 +46,6 @@ The SDK is compatible on the following blockchains:
 
 - Ethereum Mainnet
 - Ethereum Rinkeby
-- Ethereum Ropsten
-- Ethereum Kovan
-- Ethereum Goerli
 - Polygon
 - Polygon Mumbai
 - xDai chain (Gnosis chain)
@@ -182,7 +179,7 @@ The SDK will provide you the following list of methods:
 
 ###### - **setBlocksNumberConfirmationRequired(blocksNumberConfirmationRequired) : void**
 
-###### - **getSwapDetails(maker, swapId) : Promise(Object)**
+###### - **getSwapDetails(swapId) : Promise(Object)**
 
 ###### - **getSwapAssets(swapId) : Promise(Object)**
 
@@ -272,7 +269,6 @@ In order to close a swap you can use the following method:
 const sdk = new NFTTraderSDK(....) //create the instance
 
 await sdk.closeSwap({
-  maker : 'ADDRESS_OF_THE_MAKER', //address of the maker of the swap (mandatory)
   swapId : 0, //unique identifier of the swap (mandatory)
   referralAddress : '0x0000000000000000000000000000000000000000' //Can be an address of an account or a smart contract. Referral address utility will be explained in the next sections (optional)
   },
@@ -512,13 +508,12 @@ sdk.off('createSwapTransactionCreated', async ({tx}) => {
 
 The SDK provides you several methods to get information from the NFT Trader Smart Contract. Here a list of read methods you can use.
 
-##### getSwapDetails(maker, swapId) : Promise(Object)
+##### getSwapDetails(swapId) : Promise(Object)
 
 Returns the major details of the swap. Example:
 
 ```js
 const {
-  id, //the swap unique identifier
   addressMaker, //the address of the maker
   discountMaker, //internal parameter used by the smart contract. For more info contact the team.
   valueMaker, //the amount in wei placed by the creator of the swap
@@ -534,7 +529,7 @@ const {
   status, //status of the swap. 0 means opened, 1 means closed, 2 means canceled
   royaltiesMaker, //internal parameter used by the smart contract. For more info contact the team.
   royaltiesTaker, //internal parameter used by the smart contract. For more info contact the team.
-} = await sdk.getSwapDetails(maker, swapId)
+} = await sdk.getSwapDetails(swapId)
 ```
 
 ##### getSwapAssets(swapId) : Promise(Object)
