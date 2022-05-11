@@ -197,6 +197,14 @@ The SDK will provide you the following list of methods:
 
 ###### - **getNetworksAvailable() : Object**
 
+###### - **estimateGasCreateSwap() : Object**
+
+###### - **estimateGasCloseSwap() : Object**
+
+###### - **estimateGasCancelSwap() : Object**
+
+###### - **estimateGasEditTaker() : Object**
+
 ## Create A Swap
 
 In order to create a swap you can use the following method:
@@ -635,6 +643,38 @@ Return a Object instance containing the networks currently supported by this SDK
 
 ```js
 const networks = sdk.getNetworksAvailable()
+```
+
+##### estimateGasCreateSwap() : ethers.BigNumber | null
+
+Returns the gas estimation cost of the create swap operation. Example:
+
+```js
+const estimateGas = await sdk.estimateGasCreateSwap(...params)
+```
+
+##### estimateGasCloseSwap() : ethers.BigNumber | null
+
+Returns the gas estimation cost of the close swap operation. Example:
+
+```js
+const estimateGas = await sdk.estimateGasCloseSwap(...params)
+```
+
+##### estimateGasCancelSwap() : ethers.BigNumber | null
+
+Returns the gas estimation cost of the cancel swap operation. Example:
+
+```js
+const estimateGas = await sdk.estimateGasCancelSwap(...params)
+```
+
+##### estimateGasEditTaker() : ethers.BigNumber | null
+
+Returns the gas estimation cost of the cancel swap operation. Example:
+
+```js
+const estimateGas = await sdk.estimateGasEditTaker(...params)
 ```
 
 ## Utilities

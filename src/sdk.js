@@ -673,6 +673,49 @@ NFTTraderSDK.prototype.cancelSwap = async function (
 }
 
 /**
+ * Returns the estimation gas cost of the cancel swap operation.
+ *
+ * @param {number} swapId - the identifier of the swap.
+ * @param {number} gasLimit - the gas limit of the transaction
+ * @param {string} gasPrice - the gas price of the transaction
+ */
+NFTTraderSDK.prototype.estimateGasCancelSwap = async function (
+  swapId,
+  gasLimit = 2000000,
+  gasPrice = null
+) {
+  if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
+    throw new Error(
+      "you cannot cancel a swap when you're in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction."
+    )
+
+  let txOverrides = {}
+  gasLimit && (txOverrides["gasLimit"] = gasLimit)
+  gasPrice && (txOverrides["gasPrice"] = gasPrice)
+
+  let senderTx
+  let signerTx
+  let contract = this.contract
+
+  if (this.isWeb3Provider) {
+    senderTx = (await this.provider.listAccounts())[0]
+    signerTx = this.provider.getSigner(senderTx)
+    contract = this.contract.connect(signerTx)
+  }
+
+  try {
+    let estimateGas = await contract.estimateGas.cancelSwapIntent(swapId, {
+      ...txOverrides,
+    })
+
+    return estimateGas
+  } catch (error) {
+    console.error(error)
+    return null
+  }
+}
+
+/**
  * Edit the taker (counterparty) of the swap. Only the maker (creator) can edit it.
  *
  * @param {number} swapId - the identifier of the swap.
@@ -724,6 +767,55 @@ NFTTraderSDK.prototype.editTaker = async function (
       error,
       typeError: "editCounterpartError",
     })
+  }
+}
+
+/**
+ * Returns the estimation gas cost of the edit counterparty operation.
+ *
+ * @param {number} swapId - the identifier of the swap.
+ * @param {string} addressTaker - the address of the taker (counterparty).
+ * @param {number} gasLimit - the gas limit of the transaction
+ * @param {string} gasPrice - the gas price of the transaction
+ */
+NFTTraderSDK.prototype.estimateGasEditTaker = async function (
+  swapId,
+  addressTaker,
+  gasLimit = 2000000,
+  gasPrice = null
+) {
+  if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
+    throw new Error(
+      "you cannot edit the taker of a swap when you're in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction."
+    )
+
+  let txOverrides = {}
+  gasLimit && (txOverrides["gasLimit"] = gasLimit)
+  gasPrice && (txOverrides["gasPrice"] = gasPrice)
+
+  let senderTx
+  let signerTx
+  let contract = this.contract
+
+  if (this.isWeb3Provider) {
+    senderTx = (await this.provider.listAccounts())[0]
+    signerTx = this.provider.getSigner(senderTx)
+    contract = this.contract.connect(signerTx)
+  }
+
+  try {
+    let estimateGas = await contract.estimateGas.editCounterPart(
+      swapId,
+      addressTaker,
+      {
+        ...txOverrides,
+      }
+    )
+
+    return estimateGas
+  } catch (error) {
+    console.error(error)
+    return null
   }
 }
 
