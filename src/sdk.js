@@ -323,6 +323,134 @@ NFTTraderSDK.prototype.createSwap = async function (
 }
 
 /**
+ * Returns the estimation gas cost of the create swap operation.
+ *
+ * @param {Object} createSwapObj - the createSwap configuration object
+ * @param {number} createSwapObj.ethMaker - the ethereum amount provided by the creator of the swap.
+ * @param {string} createSwapObj.taker - the taker (counterparty) of the swap.
+ * @param {number} createSwapObj.ethTaker - the ethereum amount provided by the taker (counterparty) of the swap.
+ * @param {number} createSwapObj.swapEnd - the number of the days representing the validity of the swap
+ * @param {Array} createSwapObj.assetsMaker - the assets (ERC20/ERC721/ERC1155) provided by the creator of the swap
+ * @param {Array} createSwapObj.assetsTaker - the assets (ERC20/ERC721/ERC1155) provided by the taker (counterparty) of the swap
+ * @param {string} createSwapObj.referralAddress - the referral address of the transaction.
+ * @param {number} gasLimit - the gas limit of the transaction
+ * @param {string} gasPrice - the gas price of the transaction
+ */
+NFTTraderSDK.prototype.estimateGasCreateSwap = async function (
+  {
+    ethMaker,
+    taker,
+    ethTaker,
+    swapEnd = 0,
+    assetsMaker = [],
+    assetsTaker = [],
+    referralAddress = "0x0000000000000000000000000000000000000000",
+  },
+  gasLimit = 2000000,
+  gasPrice = null
+) {
+  if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
+    throw new Error(
+      "you cannot create a swap when you're in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction."
+    )
+  if (swapEnd < 0) throw new Error("swapEnd cannot be lower than zero.")
+
+  const addressMaker = this.isJsonRpcProvider
+    ? this.signer.address
+    : (await this.provider.listAccounts())[0]
+  const discountMaker = false
+  const valueMaker = this.ethers.BigNumber.from(ethMaker.toString())
+  const flatFeeMaker = 0
+  const addressTaker = taker
+  const discountTaker = false
+  const valueTaker = this.ethers.BigNumber.from(ethTaker.toString())
+  const flatFeeTaker = 0
+  const swapStart = 0
+  const flagFlatFee = false
+  const flagRoyalties = false
+  const status = 0
+  const royaltiesMaker = 0
+  const royaltiesTaker = 0
+  const swapIntent = [
+    addressMaker,
+    discountMaker,
+    valueMaker.toString(),
+    flatFeeMaker,
+    addressTaker,
+    discountTaker,
+    valueTaker.toString(),
+    flatFeeTaker,
+    swapStart,
+    swapEnd,
+    flagFlatFee,
+    flagRoyalties,
+    status,
+    royaltiesMaker,
+    royaltiesTaker,
+  ]
+
+  let hasSquad = false
+  let fee
+
+  try {
+    const { flagFlatFee, flatFee } = await this.getPayment()
+    fee = flagFlatFee ? flatFee.toNumber() : 0
+
+    const { TRADESQUAD, PARTNERSQUAD } = await this.getReferenceAddress()
+
+    const contractTradeSquad = new this.ethers.Contract(
+      TRADESQUAD,
+      erc721Abi,
+      this.provider
+    )
+    const contractPartnerSquad = new this.ethers.Contract(
+      PARTNERSQUAD,
+      erc721Abi,
+      this.provider
+    )
+
+    const balanceTradeSquad = await contractTradeSquad.balanceOf(addressMaker)
+    const balancePartnerSquad = await contractPartnerSquad.balanceOf(
+      addressMaker
+    )
+
+    if (balanceTradeSquad.toNumber() > 0 || balancePartnerSquad.toNumber() > 0)
+      hasSquad = true
+  } catch (error) {
+    throw new Error(error)
+  }
+
+  let txOverrides = {}
+  txOverrides["value"] = hasSquad
+    ? valueMaker.toString()
+    : valueMaker.add(fee).toString()
+  gasLimit && (txOverrides["gasLimit"] = gasLimit)
+  gasPrice && (txOverrides["gasPrice"] = gasPrice)
+
+  let signerTx
+  let contract = this.contract
+
+  if (this.isWeb3Provider) {
+    signerTx = this.provider.getSigner(addressMaker)
+    contract = this.contract.connect(signerTx)
+  }
+
+  try {
+    let estimateGas = await contract.estimateGas.createSwapIntent(
+      swapIntent,
+      assetsMaker,
+      assetsTaker,
+      referralAddress,
+      { ...txOverrides }
+    )
+    return estimateGas
+  } catch (error) {
+    console.error(error)
+    return null
+  }
+}
+
+/**
  * Close the swap. Only the taker (counterparty) can close it if its address is specified. Otherwise everyone can close the swap.
  *
  * @param {Object} closeSwapObj - the closeSwap configuration object
@@ -405,6 +533,88 @@ NFTTraderSDK.prototype.closeSwap = async function (
         error,
         typeError: "closeSwapIntentError",
       })
+    }
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+/**
+ * Returns the gas estimation cost of the close swap operation.
+ *
+ * @param {Object} closeSwapObj - the closeSwap configuration object
+ * @param {number} closeSwapObj.swapId - the identifier of the swap.
+ * @param {string} closeSwapObj.referralAddress - the referral address of the transaction.
+ * @param {string} closeSwapObj.referralAddress - the referral address of the transaction.
+ * @param {string} closeSwapObj.referralAddress - the referral address of the transaction.
+ * @param {number} gasLimit - the gas limit of the transaction
+ * @param {string} gasPrice - the gas price of the transaction
+ */
+NFTTraderSDK.prototype.estimateGasCloseSwap = async function (
+  { swapId, referralAddress = "0x0000000000000000000000000000000000000000" },
+  gasLimit = 2000000,
+  gasPrice = null
+) {
+  if (this.avoidPrivateKeySigner && this.isJsonRpcProvider)
+    throw new Error(
+      "you cannot close a swap when you're in jsonRpcProvider mode with avoidPrivateKeySigner param set to true. In this mode you should just read data from the blockchain, not write a transaction."
+    )
+
+  try {
+    let hasSquad = false
+    const { flagFlatFee, flatFee } = await this.getPayment()
+    const fee = flagFlatFee ? flatFee.toNumber() : 0
+    const taker = this.isJsonRpcProvider
+      ? this.signer.address
+      : (await this.provider.listAccounts())[0]
+    const { valueTaker } = await this.getSwapDetails(swapId)
+    const { TRADESQUAD, PARTNERSQUAD } = await this.getReferenceAddress()
+    const contractTradeSquad = new this.ethers.Contract(
+      TRADESQUAD,
+      erc721Abi,
+      this.provider
+    )
+    const contractPartnerSquad = new this.ethers.Contract(
+      PARTNERSQUAD,
+      erc721Abi,
+      this.provider
+    )
+
+    const balanceTradeSquad = await contractTradeSquad.balanceOf(taker)
+    const balancePartnerSquad = await contractPartnerSquad.balanceOf(taker)
+
+    let txOverrides = {}
+    txOverrides["value"] = hasSquad
+      ? valueTaker.toString()
+      : valueTaker.add(fee).toString()
+    gasLimit && (txOverrides["gasLimit"] = gasLimit)
+    gasPrice && (txOverrides["gasPrice"] = gasPrice)
+
+    if (balanceTradeSquad.toNumber() > 0 || balancePartnerSquad.toNumber() > 0)
+      hasSquad = true
+
+    let senderTx
+    let signerTx
+    let contract = this.contract
+
+    if (this.isWeb3Provider) {
+      senderTx = (await this.provider.listAccounts())[0]
+      signerTx = this.provider.getSigner(senderTx)
+      contract = this.contract.connect(signerTx)
+    }
+
+    try {
+      let estimateGas = await contract.estimateGas.closeSwapIntent(
+        swapId,
+        referralAddress,
+        {
+          ...txOverrides,
+        }
+      )
+      return estimateGas
+    } catch (error) {
+      console.error(error)
+      return null
     }
   } catch (error) {
     throw new Error(error)
