@@ -187,9 +187,9 @@ NFTTraderSDK.prototype.setBlocksNumberConfirmationRequired = function (
  * Create the swap
  *
  * @param {Object} createSwapObj - the createSwap configuration object
- * @param {number} createSwapObj.ethMaker - the ethereum amount provided by the creator of the swap.
+ * @param {string} createSwapObj.ethMaker - the ethereum amount provided by the creator of the swap.
  * @param {string} createSwapObj.taker - the taker (counterparty) of the swap.
- * @param {number} createSwapObj.ethTaker - the ethereum amount provided by the taker (counterparty) of the swap.
+ * @param {string} createSwapObj.ethTaker - the ethereum amount provided by the taker (counterparty) of the swap.
  * @param {number} createSwapObj.swapEnd - the number of the days representing the validity of the swap
  * @param {Array} createSwapObj.assetsMaker - the assets (ERC20/ERC721/ERC1155) provided by the creator of the swap
  * @param {Array} createSwapObj.assetsTaker - the assets (ERC20/ERC721/ERC1155) provided by the taker (counterparty) of the swap
@@ -216,15 +216,21 @@ NFTTraderSDK.prototype.createSwap = async function (
     )
   if (swapEnd < 0) throw new Error("swapEnd cannot be lower than zero.")
 
+  if (typeof ethMaker !== "string")
+    throw new Error("ethMaker must be a string.")
+
+  if (typeof ethTaker !== "string")
+    throw new Error("ethTaker must be a string.")
+
   const addressMaker = this.isJsonRpcProvider
     ? this.signer.address
     : (await this.provider.listAccounts())[0]
   const discountMaker = false
-  const valueMaker = this.ethers.BigNumber.from(ethMaker.toString())
+  const valueMaker = this.ethers.BigNumber.from(ethMaker)
   const flatFeeMaker = 0
   const addressTaker = taker
   const discountTaker = false
-  const valueTaker = this.ethers.BigNumber.from(ethTaker.toString())
+  const valueTaker = this.ethers.BigNumber.from(ethTaker)
   const flatFeeTaker = 0
   const swapStart = 0
   const flagFlatFee = false
@@ -255,7 +261,7 @@ NFTTraderSDK.prototype.createSwap = async function (
 
   try {
     const { flagFlatFee, flatFee } = await this.getPayment()
-    fee = flagFlatFee ? flatFee.toNumber() : 0
+    fee = flagFlatFee ? flatFee : "0"
 
     const { TRADESQUAD, PARTNERSQUAD } = await this.getReferenceAddress()
 
@@ -275,8 +281,7 @@ NFTTraderSDK.prototype.createSwap = async function (
       addressMaker
     )
 
-    if (balanceTradeSquad.toNumber() > 0 || balancePartnerSquad.toNumber() > 0)
-      hasSquad = true
+    if (balanceTradeSquad.gt(0) || balancePartnerSquad.gt(0)) hasSquad = true
   } catch (error) {
     throw new Error(error)
   }
@@ -326,9 +331,9 @@ NFTTraderSDK.prototype.createSwap = async function (
  * Returns the estimation gas cost of the create swap operation.
  *
  * @param {Object} createSwapObj - the createSwap configuration object
- * @param {number} createSwapObj.ethMaker - the ethereum amount provided by the creator of the swap.
+ * @param {string} createSwapObj.ethMaker - the ethereum amount provided by the creator of the swap.
  * @param {string} createSwapObj.taker - the taker (counterparty) of the swap.
- * @param {number} createSwapObj.ethTaker - the ethereum amount provided by the taker (counterparty) of the swap.
+ * @param {string} createSwapObj.ethTaker - the ethereum amount provided by the taker (counterparty) of the swap.
  * @param {number} createSwapObj.swapEnd - the number of the days representing the validity of the swap
  * @param {Array} createSwapObj.assetsMaker - the assets (ERC20/ERC721/ERC1155) provided by the creator of the swap
  * @param {Array} createSwapObj.assetsTaker - the assets (ERC20/ERC721/ERC1155) provided by the taker (counterparty) of the swap
@@ -355,15 +360,21 @@ NFTTraderSDK.prototype.estimateGasCreateSwap = async function (
     )
   if (swapEnd < 0) throw new Error("swapEnd cannot be lower than zero.")
 
+  if (typeof ethMaker !== "string")
+    throw new Error("ethMaker must be a string.")
+
+  if (typeof ethTaker !== "string")
+    throw new Error("ethTaker must be a string.")
+
   const addressMaker = this.isJsonRpcProvider
     ? this.signer.address
     : (await this.provider.listAccounts())[0]
   const discountMaker = false
-  const valueMaker = this.ethers.BigNumber.from(ethMaker.toString())
+  const valueMaker = this.ethers.BigNumber.from(ethMaker)
   const flatFeeMaker = 0
   const addressTaker = taker
   const discountTaker = false
-  const valueTaker = this.ethers.BigNumber.from(ethTaker.toString())
+  const valueTaker = this.ethers.BigNumber.from(ethTaker)
   const flatFeeTaker = 0
   const swapStart = 0
   const flagFlatFee = false
@@ -394,7 +405,7 @@ NFTTraderSDK.prototype.estimateGasCreateSwap = async function (
 
   try {
     const { flagFlatFee, flatFee } = await this.getPayment()
-    fee = flagFlatFee ? flatFee.toNumber() : 0
+    fee = flagFlatFee ? flatFee : "0"
 
     const { TRADESQUAD, PARTNERSQUAD } = await this.getReferenceAddress()
 
@@ -414,8 +425,7 @@ NFTTraderSDK.prototype.estimateGasCreateSwap = async function (
       addressMaker
     )
 
-    if (balanceTradeSquad.toNumber() > 0 || balancePartnerSquad.toNumber() > 0)
-      hasSquad = true
+    if (balanceTradeSquad.gt(0) || balancePartnerSquad.gt(0)) hasSquad = true
   } catch (error) {
     throw new Error(error)
   }
@@ -474,7 +484,7 @@ NFTTraderSDK.prototype.closeSwap = async function (
   try {
     let hasSquad = false
     const { flagFlatFee, flatFee } = await this.getPayment()
-    const fee = flagFlatFee ? flatFee.toNumber() : 0
+    const fee = flagFlatFee ? flatFee : "0"
     const taker = this.isJsonRpcProvider
       ? this.signer.address
       : (await this.provider.listAccounts())[0]
@@ -501,8 +511,7 @@ NFTTraderSDK.prototype.closeSwap = async function (
     gasLimit && (txOverrides["gasLimit"] = gasLimit)
     gasPrice && (txOverrides["gasPrice"] = gasPrice)
 
-    if (balanceTradeSquad.toNumber() > 0 || balancePartnerSquad.toNumber() > 0)
-      hasSquad = true
+    if (balanceTradeSquad.gt(0) || balancePartnerSquad.gt(0)) hasSquad = true
 
     let senderTx
     let signerTx
@@ -563,7 +572,7 @@ NFTTraderSDK.prototype.estimateGasCloseSwap = async function (
   try {
     let hasSquad = false
     const { flagFlatFee, flatFee } = await this.getPayment()
-    const fee = flagFlatFee ? flatFee.toNumber() : 0
+    const fee = flagFlatFee ? flatFee : "0"
     const taker = this.isJsonRpcProvider
       ? this.signer.address
       : (await this.provider.listAccounts())[0]
@@ -590,8 +599,7 @@ NFTTraderSDK.prototype.estimateGasCloseSwap = async function (
     gasLimit && (txOverrides["gasLimit"] = gasLimit)
     gasPrice && (txOverrides["gasPrice"] = gasPrice)
 
-    if (balanceTradeSquad.toNumber() > 0 || balancePartnerSquad.toNumber() > 0)
-      hasSquad = true
+    if (balanceTradeSquad.gt(0) || balancePartnerSquad.gt(0)) hasSquad = true
 
     let senderTx
     let signerTx
@@ -843,7 +851,7 @@ NFTTraderSDK.prototype.getSwapDetails = async function (swapId) {
       status,
       royaltiesMaker,
       royaltiesTaker,
-    } = await this.contract.getSwapIntentByAddress(swapId))
+    } = await this.contract.getSwapIntentById(swapId))
   } catch (error) {
     throw new Error(error)
   }
@@ -978,7 +986,7 @@ NFTTraderSDK.prototype.AssetsArray = function () {
  * Add an ERC20 token item to the assets Array.
  *
  * @param {string} address - the ERC20 token address.
- * @param {number} tokenAmount - the amount of the token used.
+ * @param {string} tokenAmount - the amount of the token used.
  */
 NFTTraderSDK.prototype.AssetsArray.prototype.addERC20Asset = function (
   address,
@@ -990,7 +998,7 @@ NFTTraderSDK.prototype.AssetsArray.prototype.addERC20Asset = function (
     address,
     this.tokenConstants.ERC20,
     [],
-    [this.assetsArrayEthers.BigNumber.from(tokenAmount.toString()).toString()],
+    [tokenAmount],
     [0],
     [],
   ])

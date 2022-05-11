@@ -213,9 +213,9 @@ In order to create a swap you can use the following method:
 const sdk = new NFTTraderSDK(....) //create the instance
 
 await sdk.createSwap({
-    ethMaker : 100000000000, //amount in wei placed by the creator of the swap (mandatory)
+    ethMaker : "100000000000", //amount in wei placed by the creator of the swap (mandatory)
     taker : '0x87B96FE67F93bc795B7bb6957A4812DA1ec5e4Cf', //address of the taker (counterparty) of the swap. If you provide the value '0x0000000000000000000000000000000000000000' the swap can be closed by everyone (mandatory)
-    ethTaker : 100000000000, //amount in wei placed by the taker of the swap (mandatory)
+    ethTaker : "100000000000", //amount in wei placed by the taker of the swap (mandatory)
     swapEnd : 0, //number of days of validity of the swap. If not specified the value will be zero. Zero value means no time limit. (optional)
     assetsMaker : [], //Array of ERC721/1155/20 tokens placed by the creator of the swap. The default value is an empty array. The SDK provides utility methods to build this array. (optional)
     assetsTaker : [], //Array of ERC721/1155/20 tokens placed by the taker (counterparty) of the swap. The default value is an empty array. The SDK provides utility methods to build this array. (optional)
@@ -771,11 +771,11 @@ const sdk = new NFTTraderSDK(....)
 const assetsArrayMaker = new sdk.AssetsArray()
 const assetsArrayTaker = new sdk.AssetsArray()
 
-assetsArrayMaker.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', 10000000000000000000)
+assetsArrayMaker.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', "10000000000000000000")
 assetsArrayMaker.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', [1,3456])
 assetsArrayMaker.addERC1155Asset('0xedb61f74b0d09b2558f1eeb79b247c1f363ae452', [1,3456], [1,1])
 
-assetsArrayTaker.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', 10000000000000000000)
+assetsArrayTaker.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', "10000000000000000000")
 assetsArrayTaker.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', [230,12])
 
 const assetsMaker = assetsArrayMaker.getAssetsArray() //returns the array of assets for the maker

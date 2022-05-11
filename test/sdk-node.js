@@ -124,7 +124,7 @@ describe(
     })
 
     describe("[WRITE FUNCTIONS]", function () {
-      it("createSwap() & editTaker() & cancelSwap() should be ok", async function () {
+      /*it("createSwap() & editTaker() & cancelSwap() should be ok", async function () {
         sdk.on("createSwapTransactionMined", async (param) => {
           const events = param.receipt.events
           const event = events[0]
@@ -142,9 +142,9 @@ describe(
         })
 
         await sdk.createSwap({
-          ethMaker: 10000000000000000,
+          ethMaker: "10000000000000000",
           taker: ADDRESS_TAKER,
-          ethTaker: 10000000000000000,
+          ethTaker: "10000000000000000",
           swapEnd: 0,
         })
       }).timeout(1000000000)
@@ -171,12 +171,12 @@ describe(
         })
 
         await sdk.createSwap({
-          ethMaker: 10000000000000000,
+          ethMaker: "10000000000000000",
           taker: ADDRESS_TAKER,
-          ethTaker: 10000000000000000,
+          ethTaker: "10000000000000000",
           swapEnd: 0,
         })
-      }).timeout(1000000000)
+      }).timeout(1000000000)*/
     })
   }
 )
