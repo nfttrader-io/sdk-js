@@ -197,13 +197,17 @@ The SDK will provide you the following list of methods:
 
 ###### - **getNetworksAvailable() : Object**
 
-###### - **estimateGasCreateSwap() : Object**
+###### - **estimateGasCreateSwap() : ethers.BigNumber | null**
 
-###### - **estimateGasCloseSwap() : Object**
+###### - **estimateGasCloseSwap() : ethers.BigNumber | null**
 
-###### - **estimateGasCancelSwap() : Object**
+###### - **estimateGasCancelSwap() : ethers.BigNumber | null**
 
-###### - **estimateGasEditTaker() : Object**
+###### - **estimateGasEditTaker() : ethers.BigNumber | null**
+
+###### - **getRoyaltyRegistriesEngines() : Object**
+
+###### - **getRoyaltyRegistryEngineABI() : Array<Object>**
 
 ## Create A Swap
 
@@ -675,6 +679,22 @@ Returns the gas estimation cost of the cancel swap operation. Example:
 
 ```js
 const estimateGas = await sdk.estimateGasEditTaker(...params)
+```
+
+##### getRoyaltyRegistriesEngines() : ethers.BigNumber | null
+
+Returns the royalty registries engines mapping supported by the SDK. Example:
+
+```js
+const mapping = await sdk.getRoyaltyRegistriesEngines() : Object
+```
+
+##### getRoyaltyRegistryEngineABI() : ethers.BigNumber | null
+
+Returns the ABI object related to the royalty registry engine. Example:
+
+```js
+const abi = await sdk.getRoyaltyRegistryEngineABI() : Array<Object>
 ```
 
 ## Utilities

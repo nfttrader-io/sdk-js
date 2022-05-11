@@ -1,4 +1,10 @@
-const { swap, contractAbi, erc721Abi } = require("./contracts")
+const {
+  swap,
+  royaltyRegistriesEngines,
+  contractAbi,
+  erc721Abi,
+  royaltyRegistryEngineAbi,
+} = require("./contracts")
 const { events } = require("./events")
 
 /**
@@ -965,6 +971,20 @@ NFTTraderSDK.prototype.getEthersJSInstance = function () {
  */
 NFTTraderSDK.prototype.getNetworksAvailable = function () {
   return swap
+}
+
+/**
+ * Returns the instance of royalty registries engines currently supported by this SDK
+ */
+NFTTraderSDK.prototype.getRoyaltyRegistriesEngines = function () {
+  return royaltyRegistriesEngines
+}
+
+/**
+ * Returns the ABI of the royalty registriy engine currently supported by this SDK
+ */
+NFTTraderSDK.prototype.getRoyaltyRegistryEngineABI = function () {
+  return royaltyRegistryEngineAbi
 }
 
 /**
