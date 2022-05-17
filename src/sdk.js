@@ -266,8 +266,8 @@ NFTTraderSDK.prototype.createSwap = async function (
   let fee
 
   try {
-    const { flagFlatFee, flatFee } = await this.getPayment()
-    fee = flagFlatFee ? flatFee : "0"
+    const { flatFee } = await this.getPayment()
+    fee = flatFee
 
     const { TRADESQUAD, PARTNERSQUAD } = await this.getReferenceAddress()
 
@@ -410,8 +410,8 @@ NFTTraderSDK.prototype.estimateGasCreateSwap = async function (
   let fee
 
   try {
-    const { flagFlatFee, flatFee } = await this.getPayment()
-    fee = flagFlatFee ? flatFee : "0"
+    const { flatFee } = await this.getPayment()
+    fee = flatFee
 
     const { TRADESQUAD, PARTNERSQUAD } = await this.getReferenceAddress()
 
@@ -489,8 +489,8 @@ NFTTraderSDK.prototype.closeSwap = async function (
 
   try {
     let hasSquad = false
-    const { flagFlatFee, flatFee } = await this.getPayment()
-    const fee = flagFlatFee ? flatFee : "0"
+    const { flatFee } = await this.getPayment()
+    const fee = flatFee
     const taker = this.isJsonRpcProvider
       ? this.signer.address
       : (await this.provider.listAccounts())[0]
@@ -510,14 +510,14 @@ NFTTraderSDK.prototype.closeSwap = async function (
     const balanceTradeSquad = await contractTradeSquad.balanceOf(taker)
     const balancePartnerSquad = await contractPartnerSquad.balanceOf(taker)
 
+    if (balanceTradeSquad.gt(0) || balancePartnerSquad.gt(0)) hasSquad = true
+
     let txOverrides = {}
     txOverrides["value"] = hasSquad
       ? valueTaker.toString()
       : valueTaker.add(fee).toString()
     gasLimit && (txOverrides["gasLimit"] = gasLimit)
     gasPrice && (txOverrides["gasPrice"] = gasPrice)
-
-    if (balanceTradeSquad.gt(0) || balancePartnerSquad.gt(0)) hasSquad = true
 
     let senderTx
     let signerTx
@@ -560,8 +560,6 @@ NFTTraderSDK.prototype.closeSwap = async function (
  * @param {Object} closeSwapObj - the closeSwap configuration object
  * @param {number} closeSwapObj.swapId - the identifier of the swap.
  * @param {string} closeSwapObj.referralAddress - the referral address of the transaction.
- * @param {string} closeSwapObj.referralAddress - the referral address of the transaction.
- * @param {string} closeSwapObj.referralAddress - the referral address of the transaction.
  * @param {number} gasLimit - the gas limit of the transaction
  * @param {string} gasPrice - the gas price of the transaction
  */
@@ -577,8 +575,8 @@ NFTTraderSDK.prototype.estimateGasCloseSwap = async function (
 
   try {
     let hasSquad = false
-    const { flagFlatFee, flatFee } = await this.getPayment()
-    const fee = flagFlatFee ? flatFee : "0"
+    const { flatFee } = await this.getPayment()
+    const fee = flatFee
     const taker = this.isJsonRpcProvider
       ? this.signer.address
       : (await this.provider.listAccounts())[0]
@@ -598,14 +596,14 @@ NFTTraderSDK.prototype.estimateGasCloseSwap = async function (
     const balanceTradeSquad = await contractTradeSquad.balanceOf(taker)
     const balancePartnerSquad = await contractPartnerSquad.balanceOf(taker)
 
+    if (balanceTradeSquad.gt(0) || balancePartnerSquad.gt(0)) hasSquad = true
+
     let txOverrides = {}
     txOverrides["value"] = hasSquad
       ? valueTaker.toString()
       : valueTaker.add(fee).toString()
     gasLimit && (txOverrides["gasLimit"] = gasLimit)
     gasPrice && (txOverrides["gasPrice"] = gasPrice)
-
-    if (balanceTradeSquad.gt(0) || balancePartnerSquad.gt(0)) hasSquad = true
 
     let senderTx
     let signerTx
