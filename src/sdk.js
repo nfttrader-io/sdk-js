@@ -1032,10 +1032,8 @@ NFTTraderSDK.prototype.AssetsArray.prototype.addERC721Asset = function (
   address,
   tokenId
 ) {
-  if (!(tokenIds instanceof Array))
-    throw new Error("tokenIds must be an array.")
-  if (tokenIds.length === 0)
-    throw new Error("tokenIds must have at least one element.")
+  if (typeof tokenId === "string") throw new Error("tokenId must be a string.")
+
   this.assetsArray.push([
     address,
     this.tokenConstants.ERC721,
