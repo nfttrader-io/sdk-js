@@ -714,7 +714,7 @@ const assetsArray = new sdk.AssetsArray()
 
 ###### - **addERC20Asset(address, tokenAmount) : void**
 
-###### - **addERC721Asset(address, tokenIds) : void**
+###### - **addERC721Asset(address, tokenId) : void**
 
 ###### - **addERC1155Asset(address, tokenIds, tokenAmounts) : void**
 
@@ -734,12 +734,12 @@ Let's see an example of implementation.
 const sdk = new NFTTraderSDK(....)
 const assetsArray = new sdk.AssetsArray()
 
-assetsArray.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', 10000000000000000000) //the address of the token is DAI token. An ERC20 with 18 decimals. The amount passed as parameter is 10 DAI
+assetsArray.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', '10000000000000000000') //the address of the token is DAI token. An ERC20 with 18 decimals. The amount passed as parameter is 10 DAI
 ```
 
-##### addERC721Asset(address, tokenIds) : void
+##### addERC721Asset(address, tokenId) : void
 
-Adding an ERC721 token and the relative token ids to the AssetsArray object. `tokenIds` parameter must be an array with at least one element inside it.
+Adding an ERC721 token and the relative token id to the AssetsArray object. `tokenId` parameter must be a string
 
 Let's see an example of implementation.
 
@@ -747,7 +747,7 @@ Let's see an example of implementation.
 const sdk = new NFTTraderSDK(....)
 const assetsArray = new sdk.AssetsArray()
 
-assetsArray.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', [1,3456]) //the address of the token is BAYC NFT. we're adding to the array of assets the token ids number 1 and 3456.
+assetsArray.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', '2321') //the address of the token is BAYC NFT. we're adding to the array of assets the token ids number 1 and 3456.
 ```
 
 ##### addERC1155Asset(address, tokenIds, tokenAmounts) : void
@@ -773,9 +773,9 @@ Let's see an example of implementation.
 const sdk = new NFTTraderSDK(....)
 const assetsArray = new sdk.AssetsArray()
 
-assetsArray.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', 10000000000000000000)
-assetsArray.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', [1,3456])
-assetsArray.addERC1155Asset('0xedb61f74b0d09b2558f1eeb79b247c1f363ae452', [1,3456], [1,1])
+assetsArray.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', '10000000000000000000')
+assetsArray.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', '3456')
+assetsArray.addERC1155Asset('0xedb61f74b0d09b2558f1eeb79b247c1f363ae452', ['1','3456'], ['1','1'])
 
 assetsArray.clearAssetsArray() //clear everything you've putted before in the AssetsArray instance
 ```
@@ -791,12 +791,12 @@ const sdk = new NFTTraderSDK(....)
 const assetsArrayMaker = new sdk.AssetsArray()
 const assetsArrayTaker = new sdk.AssetsArray()
 
-assetsArrayMaker.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', "10000000000000000000")
-assetsArrayMaker.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', [1,3456])
-assetsArrayMaker.addERC1155Asset('0xedb61f74b0d09b2558f1eeb79b247c1f363ae452', [1,3456], [1,1])
+assetsArrayMaker.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', '10000000000000000000')
+assetsArrayMaker.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', '133')
+assetsArrayMaker.addERC1155Asset('0xedb61f74b0d09b2558f1eeb79b247c1f363ae452', ['1','3456'], ['1','1'])
 
-assetsArrayTaker.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', "10000000000000000000")
-assetsArrayTaker.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', [230,12])
+assetsArrayTaker.addERC20Asset('0x6b175474e89094c44da98b954eedeac495271d0f', '10000000000000000000')
+assetsArrayTaker.addERC721Asset('0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d', '230')
 
 const assetsMaker = assetsArrayMaker.getAssetsArray() //returns the array of assets for the maker
 const assetsTaker = assetsArrayTaker.getAssetsArray() //returns the array of assets for the taker

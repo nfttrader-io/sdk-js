@@ -1026,11 +1026,11 @@ NFTTraderSDK.prototype.AssetsArray.prototype.addERC20Asset = function (
  * Add an ERC721 token item to the assets Array.
  *
  * @param {string} address - the ERC721 token address.
- * @param {Array} tokenIds - the ids of the ERC721 token used.
+ * @param {string} tokenId - the id of the ERC721 token used.
  */
 NFTTraderSDK.prototype.AssetsArray.prototype.addERC721Asset = function (
   address,
-  tokenIds = []
+  tokenId
 ) {
   if (!(tokenIds instanceof Array))
     throw new Error("tokenIds must be an array.")
@@ -1039,7 +1039,7 @@ NFTTraderSDK.prototype.AssetsArray.prototype.addERC721Asset = function (
   this.assetsArray.push([
     address,
     this.tokenConstants.ERC721,
-    tokenIds,
+    [tokenId],
     [],
     [],
     [],
