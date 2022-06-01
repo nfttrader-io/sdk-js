@@ -766,7 +766,7 @@ NFTTraderSDK.prototype.editTaker = async function (
     })
     this.__emit("editTakerTransactionCreated", { tx })
     try {
-      let tx = await tx.wait(this.blocksNumberConfirmationRequired)
+      let receipt = await tx.wait(this.blocksNumberConfirmationRequired)
       this.__emit("editTakerTransactionMined", { receipt })
     } catch (error) {
       this.__emit("editTakerTransactionError", {
