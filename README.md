@@ -123,7 +123,7 @@ const ethers = require("ethers")
 const sdk = new NFTTraderSDK({
   ethers : ethers, //you need to provide the instance of ethers js library
   jsonRpcProvider : 'RPC_URL_PROVIDER', //example: infura
-  network : 'NETWORK', //example: 'MAINNET', 'RINKEBY', 'POLYGON', 'MUMBAI',
+  network : 'NETWORK', //example: 'ETHEREUM', 'RINKEBY', 'POLYGON', 'MUMBAI',
   signer : {
     privateKey : '<PRIVATE_KEY_OF_A_WALLET_OR_ACCOUNT>'
   },
@@ -147,7 +147,7 @@ window.addEventListener('load', async () => {
   const sdk = new NFTTraderSDK({
     ethers : ethers, //you need to provide the instance of ethers js library
     web3Provider : window.ethereum, //or an instance of ethers.providers.Web3Provider
-    network : 'NETWORK', //example: 'MAINNET', 'RINKEBY', 'POLYGON', 'MUMBAI', 'XDAI'
+    network : 'NETWORK', //example: 'ETHEREUM', 'RINKEBY', 'POLYGON', 'MUMBAI', 'XDAI'
   })
 
   provider = new ethers.providers.Web3Provider(window.ethereum)
